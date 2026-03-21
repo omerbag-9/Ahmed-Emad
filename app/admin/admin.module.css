@@ -1,0 +1,612 @@
+.adminLayout {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topBarTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
+}
+
+.topBarActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.topBarLink {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+.topBarLink:hover {
+  color: var(--text-primary);
+}
+
+.logoutBtn {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition);
+  background: none;
+  border: none;
+}
+
+.logoutBtn:hover {
+  color: var(--danger);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Dashboard */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: border-color var(--transition);
+}
+
+.statCard:hover {
+  border-color: var(--border-hover);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Places Table */
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionHint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: -0.5rem 0 1.25rem;
+  line-height: 1.5;
+  max-width: 52rem;
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition);
+  text-decoration: none;
+}
+
+.addBtn:hover {
+  opacity: 0.9;
+}
+
+.placesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.placeCard {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.placeCard:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.placeCardImage {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: var(--bg-tertiary);
+}
+
+.placeCardNoImage {
+  width: 100%;
+  height: 180px;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.placeCardBody {
+  padding: 1rem;
+}
+
+.placeCardName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.placeCardMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.placeOrderRow {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.orderBtn {
+  min-width: 2.25rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.orderBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+.orderBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.placeCardActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.editBtn {
+  padding: 0.4rem 0.8rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.editBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+.deleteBtn {
+  padding: 0.4rem 0.8rem;
+  background: transparent;
+  border: 1px solid rgba(229, 62, 62, 0.3);
+  color: #fc8181;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.deleteBtn:hover {
+  background: rgba(229, 62, 62, 0.1);
+}
+
+/* Forms */
+.formCard {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 700px;
+}
+
+.formCardFullWidth {
+  max-width: none;
+}
+
+.introBlock {
+  margin-bottom: 1.5rem;
+}
+
+.inlineCode {
+  color: var(--text-secondary);
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+.formTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.formHint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: -0.25rem 0 0.5rem;
+  line-height: 1.45;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.formInput:focus {
+  border-color: var(--border-hover);
+}
+
+.formTextarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  outline: none;
+  transition: border-color var(--transition);
+  resize: vertical;
+  min-height: 100px;
+}
+
+.formTextarea:focus {
+  border-color: var(--border-hover);
+}
+
+.formSelect {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.submitBtn {
+  padding: 0.75rem 1.5rem;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.submitBtn:hover {
+  opacity: 0.9;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cancelBtn:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+/* Upload Zone */
+.uploadZone {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.uploadZone:hover, .uploadZoneDragOver {
+  border-color: var(--border-hover);
+  background: var(--accent-glow);
+}
+
+.uploadZoneText {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.uploadZoneSubtext {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  opacity: 0.7;
+}
+
+.uploadPreview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.uploadPreviewItem {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+
+.uploadPreviewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploadPreviewRemove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.uploadPreviewItem:hover .uploadPreviewRemove {
+  opacity: 1;
+}
+
+/* Photo management */
+.photosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.photoItem {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--bg-tertiary);
+}
+
+.photoItemHeader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.4rem;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75), transparent);
+  pointer-events: none;
+}
+
+.photoPriorityBadge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: uppercase;
+}
+
+.photoOrderBtns {
+  display: flex;
+  gap: 0.2rem;
+  pointer-events: auto;
+}
+
+.photoOrderBtn {
+  width: 1.65rem;
+  height: 1.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.photoOrderBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.photoOrderBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.photoItemImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoItemOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.photoItem:hover .photoItemOverlay {
+  opacity: 1;
+}
+
+.photoDeleteBtn {
+  padding: 0.3rem 0.6rem;
+  background: rgba(229, 62, 62, 0.9);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+/* Progress bar */
+.progressBar {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .topBar {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .placesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formCard {
+    padding: 1.5rem;
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "places": [
+    {
+      "id": "df7e2d42-7923-45ec-a68e-607ec3184b80",
+      "name": "Kamelizer",
+      "slug": "kamelizer",
+      "category": "Cultural",
+      "description": "ay haga",
+      "coverImage": "/uploads/places/kamelizer/89a865f5-12d6-42ac-9b55-40318351eee6_thumb.webp",
+      "photos": [
+        {
+          "id": "89a865f5-12d6-42ac-9b55-40318351eee6",
+          "src": "/uploads/places/kamelizer/89a865f5-12d6-42ac-9b55-40318351eee6.webp",
+          "thumbnail": "/uploads/places/kamelizer/89a865f5-12d6-42ac-9b55-40318351eee6_thumb.webp",
+          "alt": "3H0A8920 fff",
+          "width": 2000,
+          "height": 1250,
+          "order": 0
+        },
+        {
+          "id": "0cbe9290-d3d0-4a3f-9dbd-3e7f232cc627",
+          "src": "/uploads/places/kamelizer/0cbe9290-d3d0-4a3f-9dbd-3e7f232cc627.webp",
+          "thumbnail": "/uploads/places/kamelizer/0cbe9290-d3d0-4a3f-9dbd-3e7f232cc627_thumb.webp",
+          "alt": "3H0A8962",
+          "width": 1600,
+          "height": 2000,
+          "order": 1
+        },
+        {
+          "id": "fe04d978-1da7-4120-ab83-fdf33ec81eeb",
+          "src": "/uploads/places/kamelizer/fe04d978-1da7-4120-ab83-fdf33ec81eeb.webp",
+          "thumbnail": "/uploads/places/kamelizer/fe04d978-1da7-4120-ab83-fdf33ec81eeb_thumb.webp",
+          "alt": "3H0A9041 f",
+          "width": 1600,
+          "height": 2000,
+          "order": 2
+        },
+        {
+          "id": "b39f86d8-49c4-41ab-bea2-d0ca01ea5f6c",
+          "src": "/uploads/places/kamelizer/b39f86d8-49c4-41ab-bea2-d0ca01ea5f6c.webp",
+          "thumbnail": "/uploads/places/kamelizer/b39f86d8-49c4-41ab-bea2-d0ca01ea5f6c_thumb.webp",
+          "alt": "3H0A9041",
+          "width": 1600,
+          "height": 2000,
+          "order": 3
+        }
+      ],
+      "createdAt": "2026-03-21T20:56:41.222Z",
+      "updatedAt": "2026-03-21T23:14:40.081Z",
+      "location": "district 5"
+    }
+  ],
+  "categories": [
+    "Cultural",
+    "Residential",
+    "Hospitality",
+    "Restaurants",
+    "Workspaces"
+  ]
+}

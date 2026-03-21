@@ -1,0 +1,75 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 248px;
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+.mainInner {
+  width: 100%;
+}
+
+/* Mobile: edge-to-edge gallery fills viewport (sidebar toggle floats above) */
+@media (max-width: 900px) {
+  .layout {
+    min-height: 100dvh;
+  }
+
+  .main {
+    margin-left: 0;
+    padding: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mainInner:not(.mainInnerPage) {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    box-sizing: border-box;
+    /* Top: clear hamburger. Bottom: only device safe-area — large padding here was empty black below the grid */
+    padding-top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow: hidden;
+  }
+
+  .mainInnerPage {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding-top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    overflow: visible;
+    min-height: auto;
+    max-height: none;
+  }
+}
+
+/* Client pages wrap gallery so it can grow to full height on mobile */
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .pageRoot {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+  }
+}

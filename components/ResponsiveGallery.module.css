@@ -1,0 +1,65 @@
+.wrap {
+  width: 100%;
+  min-width: 0;
+}
+
+.wrapWithToolbar {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  /* FAB is fixed and overlays the corner — no reserved strip (avoids black gap) */
+  container-type: size;
+  container-name: mobile-gallery;
+}
+
+.wrapWithToolbar > :first-child {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Portaled to document.body — single floating control, not a full-width bar */
+.floatToggle {
+  display: flex;
+  position: fixed;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  left: max(14px, env(safe-area-inset-left, 0px));
+  z-index: 220;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(12, 12, 12, 0.42);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  transition: transform 0.2s ease, background var(--transition), color var(--transition);
+}
+
+.floatToggle:active {
+  transform: scale(0.92);
+}
+
+.floatToggle:hover {
+  background: rgba(22, 22, 22, 0.55);
+  color: #fff;
+}
+
+@media (min-width: 901px) {
+  .floatToggle {
+    display: none !important;
+  }
+
+  .wrapWithToolbar {
+    padding-bottom: 0;
+  }
+}

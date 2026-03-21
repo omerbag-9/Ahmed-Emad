@@ -1,0 +1,162 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.masonry {
+  columns: 3;
+  column-gap: 8px;
+  padding: 0;
+}
+
+.item {
+  break-inside: avoid;
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
+  cursor: pointer;
+}
+
+.item.loaded .image {
+  opacity: 1;
+}
+
+.imageWrapper {
+  position: relative;
+  overflow: hidden;
+  background: #0a0a0a;
+  line-height: 0;
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+  opacity: 0;
+}
+
+.imageFill {
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.item.loaded .imageFill {
+  opacity: 1;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+}
+
+.viewIcon {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity var(--transition), transform var(--transition);
+  color: white;
+}
+
+.imageWrapper:hover .image {
+  transform: scale(1.03);
+}
+
+.imageWrapper:hover .overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.imageWrapper:hover .viewIcon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+@media (max-width: 1200px) {
+  .masonry {
+    columns: 3;
+  }
+}
+
+@media (max-width: 900px) {
+  .masonry:not(.masonryMobileTwoCol) {
+    columns: 2;
+    column-gap: 6px;
+  }
+
+  .masonry:not(.masonryMobileTwoCol) .item {
+    margin-bottom: 6px;
+  }
+}
+
+/* Mobile: full viewport height, 2 rows, columns scroll horizontally (portrait 3:4 cells) */
+.masonryMobileTwoCol {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-auto-flow: column;
+  /* Cell width from row height (3:4 portrait); use gallery container height when supported */
+  grid-auto-columns: calc((100dvh - 5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 3 / 8);
+  gap: 2px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  columns: unset;
+  padding: 0;
+  align-content: stretch;
+  justify-content: start;
+}
+
+.masonryMobileTwoCol .item {
+  break-inside: unset;
+  margin-bottom: 0;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.masonryMobileTwoCol .imageWrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.masonryMobileTwoCol .imageWrapper:hover .imageFill {
+  transform: scale(1.03);
+}
+
+.masonryMobileTwoCol .overlay {
+  display: none;
+}
+
+/* Cell width tracks actual gallery height (inset rectangle), not full viewport */
+@supports (container-type: size) {
+  .masonryMobileTwoCol {
+    grid-auto-columns: calc((100cqh - 2px) * 3 / 8);
+  }
+}

@@ -1,0 +1,112 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.title {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.error {
+  background: rgba(229, 62, 62, 0.1);
+  border: 1px solid rgba(229, 62, 62, 0.3);
+  color: #fc8181;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.input {
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.input:focus {
+  border-color: var(--border-hover);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.button {
+  padding: 0.85rem;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity var(--transition);
+  margin-top: 0.5rem;
+}
+
+.button:hover {
+  opacity: 0.9;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

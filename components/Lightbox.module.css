@@ -1,0 +1,171 @@
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lightbox.visible {
+  opacity: 1;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  cursor: pointer;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imageContainer {
+  position: relative;
+  animation: scaleIn 0.3s ease forwards;
+}
+
+.image {
+  max-width: 95vw;
+  max-height: 85vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.imageProtect {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: default;
+}
+
+.navBtn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  opacity: 0.5;
+  transition: opacity var(--transition), transform var(--transition);
+  cursor: pointer;
+}
+
+.navBtn:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.prevBtn {
+  left: 1rem;
+}
+
+.nextBtn {
+  right: 1rem;
+}
+
+.closeBtn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  opacity: 0.5;
+  transition: opacity var(--transition);
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  opacity: 1;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.counter {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.shareBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.05em;
+}
+
+.shareBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.copiedText {
+  color: #38a169;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .navBtn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .prevBtn {
+    left: 0.5rem;
+  }
+
+  .nextBtn {
+    right: 0.5rem;
+  }
+}
