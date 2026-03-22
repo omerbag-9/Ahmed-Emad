@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useMobileSidebarOpen } from '@/components/MobileSidebarContext';
 import MasonryGrid from './MasonryGrid';
 import PhotoSlider from './PhotoSlider';
 import styles from './ResponsiveGallery.module.css';
@@ -88,6 +89,7 @@ function IconSliderMode() {
 }
 
 export default function ResponsiveGallery({ photos, onPhotoClick }: ResponsiveGalleryProps) {
+  const mobileNavOpen = useMobileSidebarOpen();
   const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<ViewMode>('grid');
   const [hydrated, setHydrated] = useState(false);
@@ -129,7 +131,7 @@ export default function ResponsiveGallery({ photos, onPhotoClick }: ResponsiveGa
   const floatButton = (
     <button
       type="button"
-      className={styles.floatToggle}
+      className={`${styles.floatToggle} ${mobileNavOpen ? styles.floatToggleNavOpen : ''}`}
       onClick={toggleMode}
       aria-label={mode === 'grid' ? 'Switch to slider view' : 'Switch to grid view'}
     >

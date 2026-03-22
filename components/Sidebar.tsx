@@ -57,6 +57,9 @@ interface Place {
 interface SidebarProps {
   categories: string[];
   places: Place[];
+  /** When set with `onMobileOpenChange`, sidebar open state is controlled (e.g. for portfolio FAB position). */
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
 }
 
 function placeHref(place: Place) {
@@ -67,9 +70,20 @@ function isActiveProjectPath(pathname: string, place: Place) {
   return pathname === placeHref(place);
 }
 
-export default function Sidebar({ categories: _categories, places }: SidebarProps) {
+export default function Sidebar({
+  categories: _categories,
+  places,
+  mobileOpen: mobileOpenProp,
+  onMobileOpenChange,
+}: SidebarProps) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const controlled = typeof onMobileOpenChange === 'function';
+  const mobileOpen = controlled ? Boolean(mobileOpenProp) : uncontrolledOpen;
+  const setMobileOpen = (open: boolean) => {
+    if (controlled) onMobileOpenChange(open);
+    else setUncontrolledOpen(open);
+  };
   const onAnyProject = places.some((p) => isActiveProjectPath(pathname, p));
   const [projectsOpen, setProjectsOpen] = useState(onAnyProject);
 
@@ -79,24 +93,35 @@ export default function Sidebar({ categories: _categories, places }: SidebarProp
 
   return (
     <>
-      <button
-        className={styles.mobileToggle}
-        onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label="Toggle navigation"
-      >
-        <span className={`${styles.hamburger} ${mobileOpen ? styles.hamburgerOpen : ''}`}>
-          <span></span>
-          <span></span>
-          <span></span>
-        </span>
-      </button>
+      <div className={styles.mobileHeader}>
+        <button
+          type="button"
+          className={styles.mobileToggle}
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle navigation"
+          aria-expanded={mobileOpen}
+        >
+          <span className={`${styles.hamburger} ${mobileOpen ? styles.hamburgerOpen : ''}`}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+        <Link href="/" className={styles.mobileHeaderBrand} onClick={() => setMobileOpen(false)}>
+          <span className={styles.mobileHeaderBrandName}>
+            <span className={styles.brandFirst}>AHMED</span>{' '}
+            <span className={styles.brandBold}>EMAD</span>
+          </span>
+          <span className={styles.mobileHeaderBrandTag}>P H O T O G R A P H S</span>
+        </Link>
+      </div>
 
       <aside className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.sidebarInner}>
           <div className={styles.sidebarTop}>
             <Link href="/" className={styles.brand}>
               <h2 className={styles.brandName}>
-                <span className={styles.brandFirst}>AHMED</span>
+                <span className={styles.brandFirst}>AHMED</span>{' '}
                 <span className={styles.brandBold}>EMAD</span>
               </h2>
               <p className={styles.brandTag}>P H O T O G R A P H S</p>

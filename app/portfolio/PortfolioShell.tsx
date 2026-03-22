@@ -1,6 +1,5 @@
-import Sidebar from '@/components/Sidebar';
 import { getPlaces, getCategories, placesWithSortedPhotos } from '@/lib/data';
-import styles from './portfolio.module.css';
+import PortfolioLayoutClient from './PortfolioLayoutClient';
 
 type Variant = 'gallery' | 'page';
 
@@ -22,17 +21,13 @@ export default function PortfolioShell({
     location: p.location,
   }));
 
-  const innerClassName =
-    variant === 'page'
-      ? `${styles.mainInner} ${styles.mainInnerPage}`
-      : styles.mainInner;
-
   return (
-    <div className={styles.layout}>
-      <Sidebar categories={categories} places={sidebarPlaces} />
-      <main className={styles.main}>
-        <div className={innerClassName}>{children}</div>
-      </main>
-    </div>
+    <PortfolioLayoutClient
+      categories={categories}
+      places={sidebarPlaces}
+      variant={variant}
+    >
+      {children}
+    </PortfolioLayoutClient>
   );
 }

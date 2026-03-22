@@ -355,20 +355,67 @@
   color: var(--text-primary);
 }
 
-/* Mobile */
+/* Mobile — fixed strip: burger + name (always visible); drawer slides beneath */
+.mobileHeader {
+  display: none;
+  align-items: center;
+  gap: 0.65rem;
+  box-sizing: border-box;
+}
+
+.mobileHeaderBrand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity var(--transition);
+}
+
+.mobileHeaderBrand:hover {
+  opacity: 0.88;
+}
+
+.mobileHeaderBrandName {
+  display: block;
+  font-family: var(--font-ahmed-emad), Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobileHeaderBrandTag {
+  display: block;
+  font-size: 0.45rem;
+  letter-spacing: 0.45em;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .mobileToggle {
   display: none;
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 200;
+  position: relative;
+  top: auto;
+  left: auto;
+  z-index: 1;
+  flex-shrink: 0;
   width: 40px;
   height: 40px;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
 .hamburger {
@@ -413,6 +460,35 @@
 
   .sidebarOpen {
     transform: translateX(0);
+  }
+
+  .sidebar .brand {
+    display: none;
+  }
+
+  .sidebarInner {
+    padding-top: var(--mobile-header-offset);
+    padding-bottom: 2rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .mobileHeader {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 210;
+    padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 1rem 0.5rem;
+    background: transparent;
+    border: none;
+    pointer-events: none;
+  }
+
+  .mobileHeader .mobileToggle,
+  .mobileHeader .mobileHeaderBrand {
+    pointer-events: auto;
   }
 
   .mobileToggle {

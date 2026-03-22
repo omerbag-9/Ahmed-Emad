@@ -37,8 +37,8 @@
     min-height: 100dvh;
     max-height: 100dvh;
     box-sizing: border-box;
-    /* Top: clear hamburger. Bottom: only device safe-area — large padding here was empty black below the grid */
-    padding-top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    /* Top: clear fixed mobile header (burger + name) */
+    padding-top: var(--mobile-header-offset);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     overflow: hidden;
   }
@@ -48,7 +48,7 @@
     min-height: 0;
     width: 100%;
     box-sizing: border-box;
-    padding-top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    padding-top: var(--mobile-header-offset);
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
     padding-left: 1.25rem;
     padding-right: 1.25rem;

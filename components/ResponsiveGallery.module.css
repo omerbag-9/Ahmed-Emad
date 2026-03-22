@@ -42,7 +42,11 @@
   -webkit-backdrop-filter: blur(12px);
   color: rgba(255, 255, 255, 0.92);
   cursor: pointer;
-  transition: transform 0.2s ease, background var(--transition), color var(--transition);
+  transition:
+    transform 0.2s ease,
+    left 0.25s ease,
+    background var(--transition),
+    color var(--transition);
 }
 
 .floatToggle:active {
@@ -52,6 +56,11 @@
 .floatToggle:hover {
   background: rgba(22, 22, 22, 0.55);
   color: #fff;
+}
+
+/* Mobile drawer open: same bottom-left placement, offset by sidebar width so it doesn’t sit on the panel */
+.floatToggleNavOpen {
+  left: calc(248px + max(14px, env(safe-area-inset-left, 0px)));
 }
 
 @media (min-width: 901px) {

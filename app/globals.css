@@ -20,6 +20,8 @@
   --font-serif: 'Playfair Display', Georgia, serif;
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Fixed mobile bar (burger + name) in Sidebar — keep in sync with .mobileHeader padding + 40px control */
+  --mobile-header-offset: calc(41px + 1rem + env(safe-area-inset-top, 0px));
 }
 
 * {
