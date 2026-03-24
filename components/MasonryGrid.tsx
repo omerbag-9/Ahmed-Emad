@@ -20,6 +20,10 @@ interface MasonryGridProps {
   photos: Photo[];
 }
 
+function isLandscape(photo: Photo): boolean {
+  return photo.width > photo.height;
+}
+
 export default function MasonryGrid({ photos }: MasonryGridProps) {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [mobileTwoCol, setMobileTwoCol] = useState(false);
@@ -46,10 +50,14 @@ export default function MasonryGrid({ photos }: MasonryGridProps) {
 
   return (
     <div className={`${styles.masonry} ${mobileTwoCol ? styles.masonryMobileTwoCol : ''}`}>
-      {photos.map((photo, index) => (
+      {photos.map((photo, index) => {
+        const landscape = isLandscape(photo);
+        return (
         <div
           key={photo.id}
-          className={`${styles.item} ${loadedImages.has(photo.id) ? styles.loaded : ''}`}
+          className={`${styles.item} ${landscape ? styles.itemLandscape : ''} ${
+            loadedImages.has(photo.id) ? styles.loaded : ''
+          }`}
           style={{ animationDelay: `${index * 0.05}s` }}
         >
           <div
@@ -61,7 +69,7 @@ export default function MasonryGrid({ photos }: MasonryGridProps) {
                 src={photo.src}
                 alt={photo.alt}
                 fill
-                sizes="50vw"
+                sizes={landscape ? '100vw' : '50vw'}
                 loading={index < 8 ? 'eager' : 'lazy'}
                 quality={80}
                 onLoad={() => handleImageLoad(photo.id)}
@@ -75,7 +83,11 @@ export default function MasonryGrid({ photos }: MasonryGridProps) {
                 alt={photo.alt}
                 width={photo.width}
                 height={photo.height}
-                sizes="(max-width: 1200px) 33vw, 33vw"
+                sizes={
+                  landscape
+                    ? '(max-width: 900px) 100vw, 66vw'
+                    : '(max-width: 900px) 50vw, 33vw'
+                }
                 loading={index < 6 ? 'eager' : 'lazy'}
                 quality={80}
                 onLoad={() => handleImageLoad(photo.id)}
@@ -89,7 +101,8 @@ export default function MasonryGrid({ photos }: MasonryGridProps) {
             </div>
           </div>
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }
