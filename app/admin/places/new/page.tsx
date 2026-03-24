@@ -4,6 +4,8 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../../admin.module.css';
+import { acceptImageFile } from '@/lib/acceptImageFile';
+import { uploadPlacePhotosWithFallback } from '@/lib/adminCloudinaryUpload';
 
 export default function NewPlace() {
   const [name, setName] = useState('');
@@ -20,7 +22,7 @@ export default function NewPlace() {
   const router = useRouter();
 
   const handleFiles = (newFiles: FileList | File[]) => {
-    const fileArray = Array.from(newFiles).filter(f => f.type.startsWith('image/'));
+    const fileArray = Array.from(newFiles).filter((f) => acceptImageFile(f));
     setFiles(prev => [...prev, ...fileArray]);
 
     fileArray.forEach(file => {
@@ -63,18 +65,14 @@ export default function NewPlace() {
 
       // Upload photos if any
       if (files.length > 0) {
-        const formData = new FormData();
-        formData.append('placeId', place.id);
-        files.forEach(file => formData.append('photos', file));
-
         setUploadProgress(10);
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
+        const uploadRes = await uploadPlacePhotosWithFallback(place.id, files);
         setUploadProgress(100);
 
-        if (!uploadRes.ok) throw new Error('Failed to upload photos');
+        if (!uploadRes.ok) {
+          const err = await uploadRes.json().catch(() => ({}));
+          throw new Error((err as { error?: string }).error || 'Failed to upload photos');
+        }
       }
 
       router.push('/admin');

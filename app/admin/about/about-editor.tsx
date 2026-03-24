@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import styles from '../admin.module.css';
 import type { AboutContent } from '@/lib/about';
+import { acceptImageFile } from '@/lib/acceptImageFile';
+import { uploadAboutPhotoWithFallback } from '@/lib/adminCloudinaryUpload';
 
 export default function AboutEditor() {
   const [data, setData] = useState<AboutContent | null>(null);
@@ -63,15 +65,14 @@ export default function AboutEditor() {
 
   const handleUpload = async (files: FileList | null) => {
     const file = files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
+    if (!file || !acceptImageFile(file)) return;
     setUploading(true);
     setMessage('');
     try {
-      const fd = new FormData();
-      fd.append('photo', file);
-      const res = await fetch('/api/about/upload', { method: 'POST', body: fd });
+      const res = await uploadAboutPhotoWithFallback(file);
       if (!res.ok) {
-        setMessage('Image upload failed.');
+        const err = await res.json().catch(() => ({}));
+        setMessage((err as { error?: string }).error || 'Image upload failed.');
         return;
       }
       const json = (await res.json()) as { about: AboutContent };

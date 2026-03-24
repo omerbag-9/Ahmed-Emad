@@ -85,6 +85,33 @@ export async function uploadWebpBuffer(opts: {
   return { secureUrl: result.secure_url, publicId: result.public_id };
 }
 
+/** Params sent to Cloudinary browser upload must match the signed set (excluding file, api_key). */
+export function signImageUploadParams(opts: {
+  folder: string;
+  publicId: string;
+  timestamp: number;
+}): string {
+  ensureConfig();
+  const secret = trimEnv('CLOUDINARY_API_SECRET');
+  if (!secret) throw new Error('CLOUDINARY_API_SECRET missing');
+  return cloudinary.utils.api_sign_request(
+    {
+      folder: opts.folder,
+      public_id: opts.publicId,
+      timestamp: opts.timestamp,
+    },
+    secret
+  );
+}
+
+export function getCloudinaryPublicUploadIdentity(): { cloudName: string; apiKey: string } {
+  ensureConfig();
+  const cloudName = trimEnv('CLOUDINARY_CLOUD_NAME');
+  const apiKey = trimEnv('CLOUDINARY_API_KEY');
+  if (!cloudName || !apiKey) throw new Error('Cloudinary not configured');
+  return { cloudName, apiKey };
+}
+
 export async function destroyPublicIds(publicIds: string[]): Promise<void> {
   const ids = publicIds.filter(Boolean);
   if (!ids.length || !isCloudinaryConfigured()) return;

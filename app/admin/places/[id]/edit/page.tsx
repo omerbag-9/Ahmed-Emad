@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from '../../../admin.module.css';
+import { acceptImageFile } from '@/lib/acceptImageFile';
+import { uploadPlacePhotosWithFallback } from '@/lib/adminCloudinaryUpload';
 
 interface Photo {
   id: string;
@@ -52,7 +54,7 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
   }, [id]);
 
   const handleFiles = (newFileList: FileList | File[]) => {
-    const fileArray = Array.from(newFileList).filter(f => f.type.startsWith('image/'));
+    const fileArray = Array.from(newFileList).filter((f) => acceptImageFile(f));
     setNewFiles(prev => [...prev, ...fileArray]);
 
     fileArray.forEach(file => {
@@ -92,12 +94,11 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
       // Upload new photos if any
       if (newFiles.length > 0) {
         setUploading(true);
-        const formData = new FormData();
-        formData.append('placeId', id);
-        newFiles.forEach(file => formData.append('photos', file));
-
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (!uploadRes.ok) throw new Error('Upload failed');
+        const uploadRes = await uploadPlacePhotosWithFallback(id, newFiles);
+        if (!uploadRes.ok) {
+          const err = await uploadRes.json().catch(() => ({}));
+          throw new Error((err as { error?: string }).error || 'Upload failed');
+        }
         setUploading(false);
       }
 

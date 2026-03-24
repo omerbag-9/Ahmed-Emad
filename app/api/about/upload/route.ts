@@ -3,12 +3,12 @@ import { revalidatePath } from 'next/cache';
 import { isAuthenticated } from '@/lib/auth';
 import { patchAboutContent } from '@/lib/about';
 import { isCloudinaryConfigured, uploadWebpBuffer } from '@/lib/cloudinary';
+import { bufferToWebpPortrait, isAllowedImageUpload } from '@/lib/imagePipeline';
 import { v4 as uuidv4 } from 'uuid';
-import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'about');
 const CLOUD_FOLDER = 'ahmedemad/about';
@@ -26,25 +26,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
     }
 
-    if (!file.type.startsWith('image/')) {
+    if (!isAllowedImageUpload(file)) {
       return NextResponse.json({ error: 'File must be an image' }, { status: 400 });
     }
 
     const id = uuidv4();
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const inputBuffer = Buffer.from(await file.arrayBuffer());
 
-    const webpBuffer = await sharp(buffer)
-      .rotate()
-      .resize({
-        width: 1400,
-        height: 1800,
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .webp({ quality: 82 })
-      .toBuffer();
-
-    const meta = await sharp(webpBuffer).metadata();
+    let webpBuffer: Buffer;
+    let width: number;
+    let height: number;
+    try {
+      const out = await bufferToWebpPortrait(inputBuffer);
+      webpBuffer = out.buffer;
+      width = out.width;
+      height = out.height;
+    } catch (err) {
+      console.error('About portrait processing failed:', err);
+      return NextResponse.json(
+        {
+          error:
+            'Could not process this image. Try another format (JPEG/PNG/WebP) or a smaller file if upload limits apply.',
+        },
+        { status: 400 }
+      );
+    }
 
     if (isCloudinaryConfigured()) {
       const up = await uploadWebpBuffer({
@@ -59,8 +65,8 @@ export async function POST(request: Request) {
       revalidatePath('/about');
       return NextResponse.json({
         about: updated,
-        width: meta.width,
-        height: meta.height,
+        width,
+        height,
       });
     }
 
@@ -75,8 +81,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       about: updated,
-      width: meta.width,
-      height: meta.height,
+      width,
+      height,
     });
   } catch (error) {
     console.error('About upload error:', error);

@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "app/api/upload/route.ts": {
+      "maxDuration": 120,
+      "memory": 3008
+    },
+    "app/api/portfolio/upload/route.ts": {
+      "maxDuration": 120,
+      "memory": 3008
+    },
+    "app/api/about/upload/route.ts": {
+      "maxDuration": 120,
+      "memory": 3008
+    }
+  }
+}

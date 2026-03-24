@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from '../admin.module.css';
+import { acceptImageFile } from '@/lib/acceptImageFile';
+import { uploadPortfolioPhotosWithFallback } from '@/lib/adminCloudinaryUpload';
 
 interface Photo {
   id: string;
@@ -39,23 +41,24 @@ export default function PortfolioGalleryAdmin() {
   }, []);
 
   const handleFiles = async (fileList: FileList | File[]) => {
-    const fileArray = Array.from(fileList).filter((f) => f.type.startsWith('image/'));
+    const fileArray = Array.from(fileList).filter((f) => acceptImageFile(f));
     if (fileArray.length === 0) return;
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      fileArray.forEach((f) => formData.append('photos', f));
-      const res = await fetch('/api/portfolio/upload', { method: 'POST', body: formData });
+      const res = await uploadPortfolioPhotosWithFallback(fileArray);
       if (res.ok) {
         const data = await res.json();
         setPhotos(
           [...(data.photos || [])].sort((a: Photo, b: Photo) => (a.order ?? 0) - (b.order ?? 0))
         );
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert((err as { error?: string }).error || 'Upload failed.');
       }
     } catch (e) {
       console.error(e);
-      alert('Upload failed.');
+      alert(e instanceof Error ? e.message : 'Upload failed.');
     } finally {
       uploadLockRef.current = false;
       setUploading(false);
