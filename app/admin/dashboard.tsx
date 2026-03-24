@@ -159,7 +159,7 @@ export default function AdminDashboard() {
           <div className={styles.emptyState}>Loading...</div>
         ) : places.length === 0 ? (
           <div className={styles.emptyState}>
-            No places yet. Click "Add Place" to get started.
+            No places yet. Click &ldquo;Add Place&rdquo; to get started.
           </div>
         ) : (
           <div className={styles.placesGrid}>

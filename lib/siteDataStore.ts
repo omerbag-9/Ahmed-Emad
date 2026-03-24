@@ -114,11 +114,9 @@ function normalizePlacesStore(data: unknown): DataStore {
   const placesIn = Array.isArray(raw.places) ? raw.places : [];
   const places = placesIn.map((row) => {
     const p = row as Record<string, unknown>;
-    const {
-      category: _drop,
-      brief,
-      ...rest
-    } = p;
+    // Strip legacy `category` from JSON/Redis rows
+    const { category: _legacyCategory, brief, ...rest } = p;
+    void _legacyCategory;
     return {
       ...rest,
       brief: typeof brief === 'string' ? brief : '',

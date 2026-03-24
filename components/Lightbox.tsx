@@ -24,7 +24,7 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setIsAnimating(true);
+    queueMicrotask(() => setIsAnimating(true));
     const timer = setTimeout(() => setIsAnimating(false), 100);
     return () => clearTimeout(timer);
   }, []);

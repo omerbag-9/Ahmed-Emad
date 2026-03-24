@@ -31,7 +31,9 @@ export default function PlacePage({ params }: { params: Promise<{ slug: string }
 
   useEffect(() => {
     let cancelled = false;
-    setStatus('loading');
+    queueMicrotask(() => {
+      if (!cancelled) setStatus('loading');
+    });
     fetch('/api/places', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {

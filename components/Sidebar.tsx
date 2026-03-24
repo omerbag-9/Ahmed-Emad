@@ -85,7 +85,7 @@ export default function Sidebar({
   const [projectsOpen, setProjectsOpen] = useState(onAnyProject);
 
   useEffect(() => {
-    if (onAnyProject) setProjectsOpen(true);
+    if (onAnyProject) queueMicrotask(() => setProjectsOpen(true));
   }, [onAnyProject]);
 
   return (

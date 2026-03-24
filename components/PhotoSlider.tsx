@@ -203,11 +203,12 @@ export default function PhotoSlider({
   useEffect(() => {
     const el = stripRef.current;
     if (!el) return;
-    updateScrollEdges();
+    const raf = requestAnimationFrame(() => updateScrollEdges());
     el.addEventListener('scroll', updateScrollEdges, { passive: true });
     const ro = new ResizeObserver(updateScrollEdges);
     ro.observe(el);
     return () => {
+      cancelAnimationFrame(raf);
       el.removeEventListener('scroll', updateScrollEdges);
       ro.disconnect();
     };

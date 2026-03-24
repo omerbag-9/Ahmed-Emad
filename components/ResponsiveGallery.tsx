@@ -81,12 +81,14 @@ export default function ResponsiveGallery({ photos, projectTitle }: ResponsiveGa
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MQ);
     const apply = () => setIsMobile(mq.matches);
-    apply();
+    queueMicrotask(() => apply());
     mq.addEventListener('change', apply);
 
-    const stored = readStoredMode();
-    if (stored) setMode(stored);
-    setHydrated(true);
+    queueMicrotask(() => {
+      const stored = readStoredMode();
+      if (stored) setMode(stored);
+      setHydrated(true);
+    });
 
     return () => mq.removeEventListener('change', apply);
   }, []);

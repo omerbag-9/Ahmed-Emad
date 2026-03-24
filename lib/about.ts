@@ -87,7 +87,7 @@ function isAllowedImageSrc(src: string): boolean {
 
 export async function patchAboutContent(patch: AboutPatch): Promise<AboutContent> {
   const current = await loadAboutStore();
-  let next: AboutContent = { ...current };
+  const next: AboutContent = { ...current };
 
   if (patch.clearImage === true) {
     await removeStoredAboutImage(current);
