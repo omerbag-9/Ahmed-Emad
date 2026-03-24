@@ -9,10 +9,56 @@ const fontAhmedEmad = Buda({
   display: "swap",
 });
 
+const SITE_NAME = "Ahmed Emad Photographs";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ahmedemadphotographs.com";
+const SITE_DESCRIPTION =
+  "Professional architectural photography by Ahmed Emad — showcasing stunning spaces, interiors, and design projects across cultural, residential, hospitality, and commercial sectors.";
+
 export const metadata: Metadata = {
-  title: "Ahmed Emad Photographs | Architectural Photography Portfolio",
-  description: "Professional architectural photography showcasing stunning spaces, interiors, and design projects. Cultural, residential, hospitality, and commercial photography.",
-  keywords: ["architectural photography", "interior photography", "design photography", "Ahmed Emad"],
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} | Architectural Photography Portfolio`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: [
+    "architectural photography",
+    "interior photography",
+    "design photography",
+    "Ahmed Emad",
+    "Egypt photographer",
+    "commercial photography",
+    "hospitality photography",
+    "real estate photography",
+  ],
+  authors: [{ name: "Ahmed Emad" }],
+  creator: "Ahmed Emad",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} | Architectural Photography`,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: SITE_URL,
+  },
 };
 
 export default function RootLayout({
@@ -20,8 +66,33 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    name: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    image: `${SITE_URL}/og-image.jpg`,
+    priceRange: "$$",
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "EG",
+    },
+    sameAs: [
+      "https://www.instagram.com/ahmedemadv",
+      "https://www.linkedin.com/in/ahmed-emad-39044a258",
+      "https://www.facebook.com/AhmedEmad25i",
+    ],
+  };
+
   return (
     <html lang="en" className={fontAhmedEmad.variable}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

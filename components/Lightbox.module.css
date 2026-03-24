@@ -113,46 +113,41 @@
   opacity: 1;
 }
 
-.bottomBar {
+.counter {
   position: fixed;
   bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.counter {
   font-size: 0.8rem;
   color: var(--text-muted);
   letter-spacing: 0.1em;
 }
 
 .shareBtn {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 0.6rem;
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.8rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--text-secondary);
-  border-radius: 4px;
-  font-size: 0.75rem;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
   cursor: pointer;
   transition: var(--transition);
-  letter-spacing: 0.05em;
 }
 
 .shareBtn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: var(--text-primary);
-}
-
-.copiedText {
-  color: #38a169;
-  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 @media (max-width: 600px) {

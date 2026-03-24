@@ -99,6 +99,21 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
           />
           {/* Transparent overlay to prevent right-click save */}
           <div className={styles.imageProtect} />
+          {/* Share button inside photo */}
+          <button className={styles.shareBtn} onClick={handleShare} aria-label="Share photo">
+            {copied ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38a169" strokeWidth="2">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
@@ -134,26 +149,9 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
         </svg>
       </button>
 
-      {/* Bottom bar: counter + share */}
-      <div className={styles.bottomBar}>
-        <div className={styles.counter}>
-          {currentIndex + 1} / {photos.length}
-        </div>
-        <button className={styles.shareBtn} onClick={handleShare} aria-label="Share photo">
-          {copied ? (
-            <span className={styles.copiedText}>Link copied!</span>
-          ) : (
-            <>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="18" cy="5" r="3" />
-                <circle cx="6" cy="12" r="3" />
-                <circle cx="18" cy="19" r="3" />
-                <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" />
-              </svg>
-              <span>Share</span>
-            </>
-          )}
-        </button>
+      {/* Counter */}
+      <div className={styles.counter}>
+        {currentIndex + 1} / {photos.length}
       </div>
     </div>
   );
