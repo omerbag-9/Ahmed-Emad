@@ -16,7 +16,6 @@ interface Place {
   id: string;
   name: string;
   slug: string;
-  category: string;
   location?: string;
   brief?: string;
   description?: string;
@@ -27,7 +26,6 @@ interface Place {
 
 export default function AdminDashboard() {
   const [places, setPlaces] = useState<Place[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
   const [portfolioGalleryCount, setPortfolioGalleryCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -45,7 +43,6 @@ export default function AdminDashboard() {
       const data = await placesRes.json();
       const portfolioData = await portfolioRes.json();
       setPlaces(data.places || []);
-      setCategories(data.categories || []);
       setPortfolioGalleryCount((portfolioData.photos || []).length);
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -90,7 +87,6 @@ export default function AdminDashboard() {
       if (res.ok) {
         const data = await res.json();
         setPlaces(data.places || reordered);
-        if (data.categories) setCategories(data.categories);
       }
     } catch (error) {
       console.error('Failed to reorder places:', error);
@@ -98,7 +94,6 @@ export default function AdminDashboard() {
   };
 
   const totalPhotos = places.reduce((sum, p) => sum + p.photos.length, 0);
-  const uniqueCategories = [...new Set(places.map(p => p.category))].length;
 
   return (
     <>
@@ -124,10 +119,6 @@ export default function AdminDashboard() {
           <div className={styles.statCard}>
             <div className={styles.statLabel}>Photos in projects</div>
             <div className={styles.statValue}>{totalPhotos}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>Categories</div>
-            <div className={styles.statValue}>{uniqueCategories}</div>
           </div>
         </div>
 
@@ -161,7 +152,7 @@ export default function AdminDashboard() {
           </Link>
         </div>
         <p className={styles.sectionHint}>
-          Use ↑ ↓ to set the order of projects in the sidebar and in category listings — not the main /portfolio grid.
+          Use ↑ ↓ to set the order of projects in the sidebar — not the main /portfolio grid.
         </p>
 
         {loading ? (
@@ -193,9 +184,7 @@ export default function AdminDashboard() {
                 <div className={styles.placeCardBody}>
                   <div className={styles.placeCardName}>{place.name}</div>
                   <div className={styles.placeCardMeta}>
-                    {place.category}
-                    {place.location?.trim() ? ` · ${place.location.trim()}` : ''}
-                    {' · '}
+                    {place.location?.trim() ? `${place.location.trim()} · ` : ''}
                     {place.photos.length} photos · Order {index + 1}
                   </div>
                   {blurbLine ? (

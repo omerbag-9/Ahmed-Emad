@@ -82,7 +82,7 @@ export default async function PhotoPage({ params }: Props) {
 
         <div className={styles.info}>
           <h1 className={styles.placeName}>{portfolioPhoto.alt || 'Portfolio'}</h1>
-          <p className={styles.category}>Main portfolio</p>
+          <p className={styles.photoMeta}>Main portfolio</p>
         </div>
       </main>
     );
@@ -113,10 +113,7 @@ export default async function PhotoPage({ params }: Props) {
           <span className={styles.brandFirst}>AHMED</span>
           <span className={styles.brandBold}>EMAD</span>
         </Link>
-        <Link
-          href={`/portfolio/${foundPlace.category.toLowerCase()}/${foundPlace.slug}`}
-          className={styles.viewProject}
-        >
+        <Link href={`/portfolio/${foundPlace.slug}`} className={styles.viewProject}>
           View full project →
         </Link>
       </div>
@@ -139,7 +136,9 @@ export default async function PhotoPage({ params }: Props) {
 
       <div className={styles.info}>
         <h1 className={styles.placeName}>{foundPlace.name}</h1>
-        <p className={styles.category}>{foundPlace.category}</p>
+        {foundPlace.location?.trim() ? (
+          <p className={styles.photoMeta}>{foundPlace.location.trim()}</p>
+        ) : null}
       </div>
     </main>
   );

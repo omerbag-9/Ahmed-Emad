@@ -3,6 +3,34 @@
   min-width: 0;
 }
 
+/* Project page: name only above grid */
+.projectTopBar {
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  padding: 0 0 0.45rem;
+  margin-bottom: 0.15rem;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border);
+}
+
+.projectTopTitle {
+  font-family: var(--font-serif);
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .projectTopBar {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
 .wrapWithToolbar {
   flex: 1;
   min-height: 0;
@@ -12,8 +40,6 @@
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
-  container-type: size;
-  container-name: mobile-gallery;
 }
 
 @media (min-width: 901px) {
@@ -28,15 +54,22 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  /* cqh for horizontal masonry column width matches this box only */
+  container-type: size;
+  container-name: gallery-stage;
 }
 
-/* Portaled FAB — mobile/tablet: bottom-left; desktop: bottom-right */
+/*
+ * Portaled FAB — bottom-left of the *main column* (not under the fixed sidebar).
+ * Sidebar width 248px + main horizontal padding 1.5rem (portfolio layout) on desktop.
+ */
 .floatToggle {
   display: flex;
   position: fixed;
   left: max(14px, env(safe-area-inset-left, 0px));
   right: auto;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(30px + env(safe-area-inset-bottom, 0px));
   z-index: 220;
   width: 52px;
   height: 52px;
@@ -45,7 +78,7 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgba(12, 12, 12, 0.42);
+  background: rgba(12, 12, 12, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: rgba(255, 255, 255, 0.92);
@@ -57,21 +90,18 @@
     color var(--transition);
 }
 
-/* Mobile drawer open: clear 248px sidebar */
+/* Mobile drawer open: past overlay sidebar (main has no side padding on narrow viewports) */
 .floatToggleNavOpen {
   left: calc(248px + max(14px, env(safe-area-inset-left, 0px)));
 }
 
 @media (min-width: 901px) {
   .floatToggle {
-    left: auto;
-    right: max(14px, env(safe-area-inset-right, 0px));
-    transition: transform 0.2s ease, background var(--transition), color var(--transition);
+    left: calc(248px + 1.5rem + max(14px, env(safe-area-inset-left, 0px)));
   }
 
   .floatToggleNavOpen {
-    left: auto;
-    right: max(14px, env(safe-area-inset-right, 0px));
+    left: calc(248px + 1.5rem + max(14px, env(safe-area-inset-left, 0px)));
   }
 }
 

@@ -17,7 +17,6 @@ interface Photo {
 interface Place {
   id: string;
   name: string;
-  category: string;
   location?: string;
   brief?: string;
   description: string;
@@ -29,10 +28,8 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
   const [place, setPlace] = useState<Place | null>(null);
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  const [category, setCategory] = useState('');
   const [brief, setBrief] = useState('');
   const [description, setDescription] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -43,18 +40,15 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
   const router = useRouter();
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/places/${id}`).then(r => r.json()),
-      fetch('/api/places').then(r => r.json()),
-    ]).then(([placeData, allData]) => {
-      setPlace(placeData);
-      setName(placeData.name);
-      setLocation(placeData.location || '');
-      setCategory(placeData.category);
-      setBrief(placeData.brief || '');
-      setDescription(placeData.description || '');
-      setCategories(allData.categories || []);
-    });
+    fetch(`/api/places/${id}`)
+      .then((r) => r.json())
+      .then((placeData) => {
+        setPlace(placeData);
+        setName(placeData.name);
+        setLocation(placeData.location || '');
+        setBrief(placeData.brief || '');
+        setDescription(placeData.description || '');
+      });
   }, [id]);
 
   const handleFiles = (newFileList: FileList | File[]) => {
@@ -83,7 +77,7 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !category) return;
+    if (!name) return;
     if (saveLockRef.current) return;
     saveLockRef.current = true;
     setLoading(true);
@@ -92,7 +86,7 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
       await fetch(`/api/places/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, category, brief, description, location }),
+        body: JSON.stringify({ name, brief, description, location }),
       });
 
       // Upload new photos if any
@@ -216,30 +210,16 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Category *</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className={styles.formSelect}
-                required
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
               <label className={styles.formLabel}>Brief</label>
               <input
                 type="text"
                 value={brief}
                 onChange={(e) => setBrief(e.target.value)}
                 className={styles.formInput}
-                placeholder="One short line — grid & slider"
+                placeholder="Optional short line (stored with the project)"
               />
               <p className={styles.formHint}>
-                Optional editorial line above the photo gallery on the public project page.
+                Optional. Saved on the project; the public gallery currently shows the project name only.
               </p>
             </div>
 
@@ -252,7 +232,7 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
                 rows={5}
               />
               <p className={styles.formHint}>
-                Longer copy; appears under the brief in grid and slider views.
+                Saved on the project; not shown on the public gallery right now.
               </p>
             </div>
 
@@ -263,7 +243,7 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
                   Existing Photos ({place.photos.length})
                 </label>
                 <p className={styles.formHint}>
-                  Priority 1 shows first on this project&apos;s pages (category view and project detail). Main /portfolio uses a separate gallery in admin.
+                  Priority 1 shows first on this project&apos;s page. Main /portfolio uses a separate gallery in admin.
                 </p>
                 <div className={styles.photosGrid}>
                   {sortedPhotos.map((photo, index) => (

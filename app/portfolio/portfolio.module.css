@@ -37,7 +37,7 @@
     flex-direction: column;
   }
 
-  /* Gallery + slider live in the last block (after optional project/category header) */
+  /* Gallery + slider live in the last block (after optional project header) */
   .pageRoot > *:last-child {
     flex: 1 1 auto;
     min-height: 0;

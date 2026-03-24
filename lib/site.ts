@@ -11,3 +11,6 @@ export const siteContact = {
   email: 'ahmedemad.v0@gmail.com',
   phone: '+20 01002390592',
 };
+
+/** Copyright line in the sidebar footer */
+export const siteCopyrightOwner = 'Ahmed Emad';

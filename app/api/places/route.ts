@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import {
   getPlaces,
   createPlace,
-  getCategories,
   placesWithSortedPhotos,
   reorderPlaces,
 } from '@/lib/data';
@@ -10,8 +9,7 @@ import { isAuthenticated } from '@/lib/auth';
 
 export async function GET() {
   const places = placesWithSortedPhotos(await getPlaces());
-  const categories = await getCategories();
-  return NextResponse.json({ places, categories });
+  return NextResponse.json({ places });
 }
 
 export async function POST(request: Request) {
@@ -21,15 +19,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, category, brief, description, location } = await request.json();
+    const { name, brief, description, location } = await request.json();
 
-    if (!name || !category) {
-      return NextResponse.json({ error: 'Name and category are required' }, { status: 400 });
+    if (!name) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
     const place = await createPlace(
       name,
-      category,
       description || '',
       typeof location === 'string' ? location : '',
       typeof brief === 'string' ? brief : ''
@@ -57,8 +54,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Invalid place order' }, { status: 400 });
     }
     const places = placesWithSortedPhotos(await getPlaces());
-    const categories = await getCategories();
-    return NextResponse.json({ places, categories });
+    return NextResponse.json({ places });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

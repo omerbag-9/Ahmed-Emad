@@ -2,10 +2,9 @@
 
 import { useState, useEffect, use } from 'react';
 import ResponsiveGallery from '@/components/ResponsiveGallery';
-import ProjectBriefReveal from '@/components/ProjectBriefReveal';
 import PageLoader from '@/components/PageLoader';
-import portfolioStyles from '../../portfolio.module.css';
-import styles from '../category.module.css';
+import portfolioStyles from '../portfolio.module.css';
+import styles from '../project-page.module.css';
 
 interface Photo {
   id: string;
@@ -20,14 +19,13 @@ interface Place {
   id: string;
   name: string;
   slug: string;
-  category: string;
   brief?: string;
   description: string;
   photos: Photo[];
 }
 
-export default function PlacePage({ params }: { params: Promise<{ category: string; slug: string }> }) {
-  const { category, slug } = use(params);
+export default function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [place, setPlace] = useState<Place | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'missing'>('loading');
 
@@ -38,9 +36,7 @@ export default function PlacePage({ params }: { params: Promise<{ category: stri
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
-        const found = (data.places || []).find(
-          (p: Place) => p.slug === slug && p.category.toLowerCase() === category.toLowerCase()
-        );
+        const found = (data.places || []).find((p: Place) => p.slug === slug);
         setPlace(found || null);
         setStatus(found ? 'ready' : 'missing');
       })
@@ -50,7 +46,7 @@ export default function PlacePage({ params }: { params: Promise<{ category: stri
     return () => {
       cancelled = true;
     };
-  }, [category, slug]);
+  }, [slug]);
 
   if (status === 'loading') {
     return (
@@ -73,23 +69,7 @@ export default function PlacePage({ params }: { params: Promise<{ category: stri
 
   return (
     <div className={portfolioStyles.pageRoot}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>{place.name}</h1>
-        <p className={styles.count}>{place.photos.length} photos</p>
-        {place.brief?.trim() ? (
-          <ProjectBriefReveal brief={place.brief.trim()} variant="header" />
-        ) : null}
-      </div>
-
-      <ResponsiveGallery
-        photos={place.photos}
-        projectMeta={{
-          title: place.name,
-          photoCount: place.photos.length,
-          brief: place.brief,
-          description: place.description,
-        }}
-      />
+      <ResponsiveGallery photos={place.photos} projectTitle={place.name} />
     </div>
   );
 }

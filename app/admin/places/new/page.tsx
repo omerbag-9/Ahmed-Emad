@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../../admin.module.css';
@@ -8,10 +8,8 @@ import styles from '../../admin.module.css';
 export default function NewPlace() {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  const [category, setCategory] = useState('');
   const [brief, setBrief] = useState('');
   const [description, setDescription] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,15 +18,6 @@ export default function NewPlace() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submitLockRef = useRef(false);
   const router = useRouter();
-
-  useEffect(() => {
-    fetch('/api/places')
-      .then(res => res.json())
-      .then(data => {
-        setCategories(data.categories || []);
-        if (data.categories?.length) setCategory(data.categories[0]);
-      });
-  }, []);
 
   const handleFiles = (newFiles: FileList | File[]) => {
     const fileArray = Array.from(newFiles).filter(f => f.type.startsWith('image/'));
@@ -56,7 +45,7 @@ export default function NewPlace() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !category) return;
+    if (!name) return;
     if (submitLockRef.current) return;
     submitLockRef.current = true;
     setLoading(true);
@@ -66,7 +55,7 @@ export default function NewPlace() {
       const placeRes = await fetch('/api/places', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, category, brief, description, location }),
+        body: JSON.stringify({ name, brief, description, location }),
       });
 
       if (!placeRes.ok) throw new Error('Failed to create place');
@@ -138,30 +127,16 @@ export default function NewPlace() {
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Category *</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className={styles.formSelect}
-                required
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
               <label className={styles.formLabel}>Brief</label>
               <input
                 type="text"
                 value={brief}
                 onChange={(e) => setBrief(e.target.value)}
                 className={styles.formInput}
-                placeholder="One short line — shown above the gallery (grid & slider)"
+                placeholder="Optional short line (stored with the project)"
               />
               <p className={styles.formHint}>
-                Optional. A single editorial line; keep it short for a clean layout next to the photos.
+                Optional. Saved on the project; the public gallery currently shows the project name only.
               </p>
             </div>
 
@@ -175,7 +150,7 @@ export default function NewPlace() {
                 rows={5}
               />
               <p className={styles.formHint}>
-                Shown under the brief in grid and slider on the public project page.
+                Saved on the project; not shown on the public gallery right now.
               </p>
             </div>
 

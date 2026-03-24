@@ -4,7 +4,6 @@
       "id": "df7e2d42-7923-45ec-a68e-607ec3184b80",
       "name": "Kamelizer",
       "slug": "kamelizer",
-      "category": "Cultural",
       "brief": "",
       "description": "ay haga",
       "coverImage": "",
@@ -13,12 +12,5 @@
       "updatedAt": "2026-03-24T10:26:48.354Z",
       "location": "district 5"
     }
-  ],
-  "categories": [
-    "Cultural",
-    "Residential",
-    "Hospitality",
-    "Restaurants",
-    "Workspaces"
   ]
 }

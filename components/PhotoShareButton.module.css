@@ -26,19 +26,3 @@
 .btn:active {
   transform: scale(0.94);
 }
-
-/* Bottom-right on the composed photo (slider wraps image in aspect-matched .photoFrame) */
-.btnSlider {
-  position: absolute;
-  bottom: max(0.5rem, 2%);
-  right: max(0.5rem, 2%);
-  left: auto;
-  z-index: 9;
-}
-
-@media (min-width: 901px) {
-  .btnSlider {
-    bottom: max(0.65rem, 2.5%);
-    right: max(0.65rem, 2.5%);
-  }
-}

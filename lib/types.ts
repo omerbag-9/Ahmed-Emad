@@ -14,10 +14,9 @@ export interface Place {
   id: string;
   name: string;
   slug: string;
-  category: string;
   /** City, branch, or venue — shown in the sidebar next to the project name */
   location?: string;
-  /** Short editorial line — shown above the gallery (grid & slider) */
+  /** Short editorial line — stored with the project */
   brief: string;
   description: string;
   coverImage: string;
@@ -28,5 +27,4 @@ export interface Place {
 
 export interface DataStore {
   places: Place[];
-  categories: string[];
 }

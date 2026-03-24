@@ -104,7 +104,7 @@
   color: var(--text-primary);
 }
 
-.category {
+.photoMeta {
   font-size: 0.75rem;
   color: var(--text-muted);
   letter-spacing: 0.1em;

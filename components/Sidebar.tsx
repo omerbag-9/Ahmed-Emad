@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { siteSocialLinks } from '@/lib/site';
+import { siteSocialLinks, siteCopyrightOwner } from '@/lib/site';
 import styles from './Sidebar.module.css';
 
 function SocialIcon({ id }: { id: string }) {
@@ -50,12 +50,10 @@ interface Place {
   id: string;
   name: string;
   slug: string;
-  category: string;
   location?: string;
 }
 
 interface SidebarProps {
-  categories: string[];
   places: Place[];
   /** When set with `onMobileOpenChange`, sidebar open state is controlled (e.g. for portfolio FAB position). */
   mobileOpen?: boolean;
@@ -63,7 +61,7 @@ interface SidebarProps {
 }
 
 function placeHref(place: Place) {
-  return `/portfolio/${place.category.toLowerCase()}/${place.slug}`;
+  return `/portfolio/${place.slug}`;
 }
 
 function isActiveProjectPath(pathname: string, place: Place) {
@@ -71,7 +69,6 @@ function isActiveProjectPath(pathname: string, place: Place) {
 }
 
 export default function Sidebar({
-  categories: _categories,
   places,
   mobileOpen: mobileOpenProp,
   onMobileOpenChange,
@@ -215,8 +212,8 @@ export default function Sidebar({
             </nav>
           </div>
 
-          {siteSocialLinks.filter((s) => s.href?.trim()).length > 0 ? (
-            <div className={styles.socialFooter}>
+          <div className={styles.socialFooter}>
+            {siteSocialLinks.filter((s) => s.href?.trim()).length > 0 ? (
               <div className={styles.socialRow}>
                 {siteSocialLinks
                   .filter((s) => s.href?.trim())
@@ -234,8 +231,11 @@ export default function Sidebar({
                     </a>
                   ))}
               </div>
-            </div>
-          ) : null}
+            ) : null}
+            <p className={styles.copyright}>
+              © {new Date().getFullYear()} {siteCopyrightOwner}. All rights reserved.
+            </p>
+          </div>
         </div>
       </aside>
 

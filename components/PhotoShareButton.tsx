@@ -3,15 +3,11 @@
 import { useCallback, useState } from 'react';
 import styles from './PhotoShareButton.module.css';
 
-type Variant = 'grid' | 'slider';
-
 export default function PhotoShareButton({
   photoId,
-  variant = 'grid',
   className = '',
 }: {
   photoId: string;
-  variant?: Variant;
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -40,7 +36,7 @@ export default function PhotoShareButton({
   return (
     <button
       type="button"
-      className={`${styles.btn} ${variant === 'slider' ? styles.btnSlider : ''} ${className}`.trim()}
+      className={`${styles.btn} ${className}`.trim()}
       onClick={handleClick}
       aria-label={copied ? 'Link copied' : 'Copy link to this photo'}
     >

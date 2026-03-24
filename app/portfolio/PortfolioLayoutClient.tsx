@@ -8,17 +8,14 @@ import styles from './portfolio.module.css';
 type Variant = 'gallery' | 'page';
 
 export default function PortfolioLayoutClient({
-  categories,
   places,
   children,
   variant = 'gallery',
 }: {
-  categories: string[];
   places: {
     id: string;
     name: string;
     slug: string;
-    category: string;
     location?: string;
   }[];
   children: React.ReactNode;
@@ -35,12 +32,11 @@ export default function PortfolioLayoutClient({
     <MobileSidebarOpenContext.Provider value={mobileOpen}>
       <div className={styles.layout}>
         <Sidebar
-          categories={categories}
           places={places}
           mobileOpen={mobileOpen}
           onMobileOpenChange={setMobileOpen}
         />
-        <main className={styles.main}>
+        <main className={`${styles.main} portfolio-main`}>
           <div className={innerClassName}>{children}</div>
         </main>
       </div>

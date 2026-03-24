@@ -2,7 +2,7 @@ import { Redis } from '@upstash/redis';
 import { createClient } from 'redis';
 import fs from 'fs';
 import path from 'path';
-import type { DataStore, Photo } from './types';
+import type { DataStore, Photo, Place } from './types';
 import type { AboutContent } from './about';
 
 const PLACES_PATH = path.join(process.cwd(), 'data', 'places.json');
@@ -107,17 +107,24 @@ export function usesRemoteSiteData(): boolean {
 
 const defaultPlaces = (): DataStore => ({
   places: [],
-  categories: ['Cultural', 'Residential', 'Hospitality', 'Restaurants', 'Workspaces'],
 });
 
-function normalizePlacesStore(data: DataStore): DataStore {
-  return {
-    ...data,
-    places: data.places.map((p) => ({
-      ...p,
-      brief: typeof p.brief === 'string' ? p.brief : '',
-    })),
-  };
+function normalizePlacesStore(data: unknown): DataStore {
+  const raw = data as { places?: unknown[] };
+  const placesIn = Array.isArray(raw.places) ? raw.places : [];
+  const places = placesIn.map((row) => {
+    const p = row as Record<string, unknown>;
+    const {
+      category: _drop,
+      brief,
+      ...rest
+    } = p;
+    return {
+      ...rest,
+      brief: typeof brief === 'string' ? brief : '',
+    } as Place;
+  });
+  return { places };
 }
 
 function readPlacesFromDisk(): DataStore {

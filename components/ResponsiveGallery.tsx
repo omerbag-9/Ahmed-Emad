@@ -5,10 +5,7 @@ import { createPortal } from 'react-dom';
 import { useMobileSidebarOpen } from '@/components/MobileSidebarContext';
 import MasonryGrid from './MasonryGrid';
 import PhotoSlider from './PhotoSlider';
-import ProjectGalleryMeta, { type GalleryProjectMeta } from './ProjectGalleryMeta';
 import styles from './ResponsiveGallery.module.css';
-
-export type { GalleryProjectMeta };
 
 const STORAGE_KEY = 'ae-portfolio-view';
 const MOBILE_MQ = '(max-width: 900px)';
@@ -26,8 +23,8 @@ interface Photo {
 
 interface ResponsiveGalleryProps {
   photos: Photo[];
-  /** When set, shows title (mobile), brief, and description above grid & slider */
-  projectMeta?: GalleryProjectMeta;
+  /** Project name only (grid mode); hidden in horizontal gallery / slider */
+  projectTitle?: string;
 }
 
 function readStoredMode(): ViewMode | null {
@@ -41,30 +38,11 @@ function readStoredMode(): ViewMode | null {
   return null;
 }
 
-/** Grid mode icon */
-function IconNineSquares() {
-  const u = 4.5;
-  const g = 2;
-  const o = 3.25;
-  const cells = [];
-  for (let row = 0; row < 3; row += 1) {
-    for (let col = 0; col < 3; col += 1) {
-      cells.push(
-        <rect
-          key={`${row}-${col}`}
-          x={o + col * (u + g)}
-          y={o + row * (u + g)}
-          width={u}
-          height={u}
-          rx={0.35}
-          fill="currentColor"
-        />
-      );
-    }
-  }
+/** Shown in grid mode FAB — filled rectangle (switch to horizontal gallery) */
+function IconFilledRectangle() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden>
-      {cells}
+      <rect x="1.5" y="5.5" width="22" height="15"  fill="currentColor" />
     </svg>
   );
 }
@@ -92,11 +70,13 @@ function IconSliderMode() {
   );
 }
 
-export default function ResponsiveGallery({ photos, projectMeta }: ResponsiveGalleryProps) {
+export default function ResponsiveGallery({ photos, projectTitle }: ResponsiveGalleryProps) {
   const mobileNavOpen = useMobileSidebarOpen();
   const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<ViewMode>('grid');
   const [hydrated, setHydrated] = useState(false);
+  /** When opening the horizontal gallery from a grid tile, scroll to this photo */
+  const [sliderFocusPhotoId, setSliderFocusPhotoId] = useState<string | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MQ);
@@ -111,6 +91,14 @@ export default function ResponsiveGallery({ photos, projectMeta }: ResponsiveGal
     return () => mq.removeEventListener('change', apply);
   }, []);
 
+  useEffect(() => {
+    if (!hydrated || typeof document === 'undefined') return;
+    document.documentElement.setAttribute('data-ae-gallery', mode);
+    return () => {
+      document.documentElement.removeAttribute('data-ae-gallery');
+    };
+  }, [hydrated, mode]);
+
   const setModePersist = useCallback((m: ViewMode) => {
     setMode(m);
     try {
@@ -121,22 +109,48 @@ export default function ResponsiveGallery({ photos, projectMeta }: ResponsiveGal
   }, []);
 
   const toggleMode = useCallback(() => {
-    setModePersist(mode === 'grid' ? 'slider' : 'grid');
+    if (mode === 'grid') {
+      setModePersist('slider');
+    } else {
+      setSliderFocusPhotoId(null);
+      setModePersist('grid');
+    }
   }, [mode, setModePersist]);
+
+  const openSliderAtPhoto = useCallback(
+    (photoId: string) => {
+      setSliderFocusPhotoId(photoId);
+      setModePersist('slider');
+    },
+    [setModePersist]
+  );
+
+  const switchToGrid = useCallback(() => {
+    setSliderFocusPhotoId(null);
+    setModePersist('grid');
+  }, [setModePersist]);
 
   const galleryBody =
     mode === 'grid' ? (
-      <MasonryGrid photos={photos} />
+      <MasonryGrid photos={photos} onOpenPhotoInSlider={openSliderAtPhoto} />
     ) : (
-      <PhotoSlider photos={photos} />
+      <PhotoSlider
+        photos={photos}
+        initialFocusPhotoId={sliderFocusPhotoId}
+        onSwitchToGrid={switchToGrid}
+      />
     );
 
   if (!hydrated) {
     return (
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
-        {projectMeta ? <ProjectGalleryMeta meta={projectMeta} /> : null}
+        {projectTitle ? (
+          <header className={styles.projectTopBar}>
+            <h1 className={styles.projectTopTitle}>{projectTitle}</h1>
+          </header>
+        ) : null}
         <div className={styles.galleryStage}>
-          <MasonryGrid photos={photos} />
+          <MasonryGrid photos={photos} onOpenPhotoInSlider={openSliderAtPhoto} />
         </div>
       </div>
     );
@@ -149,20 +163,26 @@ export default function ResponsiveGallery({ photos, projectMeta }: ResponsiveGal
       type="button"
       className={`${styles.floatToggle} ${fabNavOpen ? styles.floatToggleNavOpen : ''}`}
       onClick={toggleMode}
-      aria-label={mode === 'grid' ? 'Switch to slider view' : 'Switch to grid view'}
+      aria-label={mode === 'grid' ? 'Switch to horizontal gallery' : 'Switch to grid view'}
     >
-      {mode === 'grid' ? <IconNineSquares /> : <IconSliderMode />}
+      {mode === 'grid' ? <IconFilledRectangle /> : <IconSliderMode />}
     </button>
   );
 
   return (
     <>
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
-        {projectMeta ? <ProjectGalleryMeta meta={projectMeta} /> : null}
+        {projectTitle && mode !== 'slider' ? (
+          <header className={styles.projectTopBar}>
+            <h1 className={styles.projectTopTitle}>{projectTitle}</h1>
+          </header>
+        ) : null}
         <div className={styles.galleryStage}>{galleryBody}</div>
       </div>
 
-      {typeof document !== 'undefined' ? createPortal(floatButton, document.body) : null}
+      {typeof document !== 'undefined' && mode === 'grid'
+        ? createPortal(floatButton, document.body)
+        : null}
     </>
   );
 }

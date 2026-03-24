@@ -187,3 +187,15 @@ input, textarea, select {
   font-family: inherit;
   font-size: inherit;
 }
+
+/* Photo slider: hide project title row (IN BRIEF, etc.) */
+html[data-ae-gallery="slider"] .portfolio-project-chrome {
+  display: none !important;
+}
+
+@media (min-width: 901px) {
+  html[data-ae-gallery="slider"] .portfolio-main {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

@@ -1,11 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PhotoShareButton from '@/components/PhotoShareButton';
 import styles from './MasonryGrid.module.css';
-
-const MOBILE_GRID_MQ = '(max-width: 900px)';
 
 interface Photo {
   id: string;
@@ -18,23 +16,22 @@ interface Photo {
 
 interface MasonryGridProps {
   photos: Photo[];
+  /** Click a photo to open horizontal gallery on that image */
+  onOpenPhotoInSlider?: (photoId: string) => void;
 }
 
 function isLandscape(photo: Photo): boolean {
   return photo.width > photo.height;
 }
 
-export default function MasonryGrid({ photos }: MasonryGridProps) {
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
-  const [mobileTwoCol, setMobileTwoCol] = useState(false);
+/** Stable `sizes` for fill cells (landscape columns are wide). */
+function sizesForGridCell(naturalW: number, naturalH: number): string {
+  const ar = naturalW / Math.max(naturalH, 1);
+  return `${Math.min(3840, Math.ceil(360 * ar))}px`;
+}
 
-  useEffect(() => {
-    const mq = window.matchMedia(MOBILE_GRID_MQ);
-    const apply = () => setMobileTwoCol(mq.matches);
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
+export default function MasonryGrid({ photos, onOpenPhotoInSlider }: MasonryGridProps) {
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   const handleImageLoad = (id: string) => {
     setLoadedImages((prev) => new Set(prev).add(id));
@@ -49,9 +46,11 @@ export default function MasonryGrid({ photos }: MasonryGridProps) {
   }
 
   return (
-    <div className={`${styles.masonry} ${mobileTwoCol ? styles.masonryMobileTwoCol : ''}`}>
+    <div className={styles.masonry}>
       {photos.map((photo, index) => {
         const landscape = isLandscape(photo);
+        const w = Math.max(photo.width, 1);
+        const h = Math.max(photo.height, 1);
         return (
         <div
           key={photo.id}
@@ -61,41 +60,29 @@ export default function MasonryGrid({ photos }: MasonryGridProps) {
           style={{ animationDelay: `${index * 0.05}s` }}
         >
           <div
-            className={`${styles.imageWrapper} noImageSave`}
+            className={`${styles.imageWrapper} noImageSave ${onOpenPhotoInSlider ? styles.imageWrapperClickable : ''}`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            {mobileTwoCol ? (
-              <Image
-                src={photo.src}
-                alt={photo.alt}
-                fill
-                sizes={landscape ? '100vw' : '50vw'}
-                loading={index < 8 ? 'eager' : 'lazy'}
-                quality={80}
-                onLoad={() => handleImageLoad(photo.id)}
-                className={styles.imageFill}
-                draggable={false}
-                onDragStart={(e) => e.preventDefault()}
+            <Image
+              src={photo.src}
+              alt={photo.alt}
+              fill
+              sizes={sizesForGridCell(w, h)}
+              loading={index < 12 ? 'eager' : 'lazy'}
+              quality={85}
+              onLoad={() => handleImageLoad(photo.id)}
+              className={styles.imageFill}
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
+            />
+            {onOpenPhotoInSlider ? (
+              <button
+                type="button"
+                className={styles.openInSliderHit}
+                onClick={() => onOpenPhotoInSlider(photo.id)}
+                aria-label={`Open ${photo.alt || 'photo'} in gallery view`}
               />
-            ) : (
-              <Image
-                src={photo.src}
-                alt={photo.alt}
-                width={photo.width}
-                height={photo.height}
-                sizes={
-                  landscape
-                    ? '(max-width: 900px) 100vw, 66vw'
-                    : '(max-width: 900px) 50vw, 33vw'
-                }
-                loading={index < 6 ? 'eager' : 'lazy'}
-                quality={80}
-                onLoad={() => handleImageLoad(photo.id)}
-                className={styles.image}
-                draggable={false}
-                onDragStart={(e) => e.preventDefault()}
-              />
-            )}
+            ) : null}
             <div className={styles.shareWrap}>
               <PhotoShareButton photoId={photo.id} />
             </div>

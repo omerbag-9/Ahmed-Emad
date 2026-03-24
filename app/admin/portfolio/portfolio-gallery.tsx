@@ -118,8 +118,8 @@ export default function PortfolioGalleryAdmin() {
 
       <div className={styles.container}>
         <p className={`${styles.sectionHint} ${styles.introBlock}`}>
-          These images appear only on the main <strong>/portfolio</strong> page. Project pages and
-          category views still use each place&apos;s own photos (edit places separately).
+          These images appear only on the main <strong>/portfolio</strong> page. Each
+          project&apos;s page uses that place&apos;s own photos (edit places separately).
         </p>
 
         <div className={`${styles.formCard} ${styles.formCardFullWidth}`}>

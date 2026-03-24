@@ -13,10 +13,6 @@ async function writeData(data: DataStore): Promise<void> {
   await savePlacesStore(data);
 }
 
-export async function getCategories(): Promise<string[]> {
-  return (await readData()).categories;
-}
-
 export async function getPlaces(): Promise<Place[]> {
   return (await readData()).places;
 }
@@ -29,12 +25,6 @@ export async function getPlaceBySlug(slug: string): Promise<Place | undefined> {
   return (await readData()).places.find(p => p.slug === slug);
 }
 
-export async function getPlacesByCategory(category: string): Promise<Place[]> {
-  return (await readData()).places.filter(
-    p => p.category.toLowerCase() === category.toLowerCase()
-  );
-}
-
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -44,7 +34,6 @@ function slugify(text: string): string {
 
 export async function createPlace(
   name: string,
-  category: string,
   description: string,
   location = '',
   brief = ''
@@ -54,7 +43,6 @@ export async function createPlace(
     id: uuidv4(),
     name,
     slug: slugify(name),
-    category,
     location: location.trim() || undefined,
     brief,
     description,
@@ -70,7 +58,7 @@ export async function createPlace(
 
 export async function updatePlace(
   id: string,
-  updates: Partial<Pick<Place, 'name' | 'category' | 'brief' | 'description' | 'location'>>
+  updates: Partial<Pick<Place, 'name' | 'brief' | 'description' | 'location'>>
 ): Promise<Place | null> {
   const data = await readData();
   const index = data.places.findIndex(p => p.id === id);
@@ -80,7 +68,6 @@ export async function updatePlace(
     data.places[index].name = updates.name;
     data.places[index].slug = slugify(updates.name);
   }
-  if (updates.category) data.places[index].category = updates.category;
   if (updates.brief !== undefined) data.places[index].brief = updates.brief;
   if (updates.description !== undefined) data.places[index].description = updates.description;
   if (updates.location !== undefined) {
