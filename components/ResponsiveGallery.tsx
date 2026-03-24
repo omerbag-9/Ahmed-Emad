@@ -7,7 +7,7 @@ import MasonryGrid from './MasonryGrid';
 import PhotoSlider from './PhotoSlider';
 import styles from './ResponsiveGallery.module.css';
 
-const STORAGE_KEY = 'ae-portfolio-mobile-view';
+const STORAGE_KEY = 'ae-portfolio-view';
 const MOBILE_MQ = '(max-width: 900px)';
 
 type ViewMode = 'grid' | 'slider';
@@ -23,7 +23,6 @@ interface Photo {
 
 interface ResponsiveGalleryProps {
   photos: Photo[];
-  onPhotoClick: (index: number) => void;
 }
 
 function readStoredMode(): ViewMode | null {
@@ -37,7 +36,7 @@ function readStoredMode(): ViewMode | null {
   return null;
 }
 
-/** 3×3 grid — shown when in grid mode (tap → slider) */
+/** Grid mode icon */
 function IconNineSquares() {
   const u = 4.5;
   const g = 2;
@@ -65,7 +64,7 @@ function IconNineSquares() {
   );
 }
 
-/** Wide frame + dots — shown when in slider mode (tap → grid) */
+/** Slider mode icon */
 function IconSliderMode() {
   return (
     <svg
@@ -88,7 +87,7 @@ function IconSliderMode() {
   );
 }
 
-export default function ResponsiveGallery({ photos, onPhotoClick }: ResponsiveGalleryProps) {
+export default function ResponsiveGallery({ photos }: ResponsiveGalleryProps) {
   const mobileNavOpen = useMobileSidebarOpen();
   const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<ViewMode>('grid');
@@ -96,15 +95,15 @@ export default function ResponsiveGallery({ photos, onPhotoClick }: ResponsiveGa
 
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MQ);
-    const applyMq = () => setIsMobile(mq.matches);
-    applyMq();
-    mq.addEventListener('change', applyMq);
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
 
     const stored = readStoredMode();
     if (stored) setMode(stored);
     setHydrated(true);
 
-    return () => mq.removeEventListener('change', applyMq);
+    return () => mq.removeEventListener('change', apply);
   }, []);
 
   const setModePersist = useCallback((m: ViewMode) => {
@@ -120,18 +119,20 @@ export default function ResponsiveGallery({ photos, onPhotoClick }: ResponsiveGa
     setModePersist(mode === 'grid' ? 'slider' : 'grid');
   }, [mode, setModePersist]);
 
-  if (!hydrated || !isMobile) {
+  if (!hydrated) {
     return (
       <div className={styles.wrap}>
-        <MasonryGrid photos={photos} onPhotoClick={onPhotoClick} />
+        <MasonryGrid photos={photos} />
       </div>
     );
   }
 
+  const fabNavOpen = mobileNavOpen && isMobile;
+
   const floatButton = (
     <button
       type="button"
-      className={`${styles.floatToggle} ${mobileNavOpen ? styles.floatToggleNavOpen : ''}`}
+      className={`${styles.floatToggle} ${fabNavOpen ? styles.floatToggleNavOpen : ''}`}
       onClick={toggleMode}
       aria-label={mode === 'grid' ? 'Switch to slider view' : 'Switch to grid view'}
     >
@@ -143,9 +144,9 @@ export default function ResponsiveGallery({ photos, onPhotoClick }: ResponsiveGa
     <>
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
         {mode === 'grid' ? (
-          <MasonryGrid photos={photos} onPhotoClick={onPhotoClick} />
+          <MasonryGrid photos={photos} />
         ) : (
-          <PhotoSlider photos={photos} onPhotoClick={onPhotoClick} />
+          <PhotoSlider photos={photos} />
         )}
       </div>
 

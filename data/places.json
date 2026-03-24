@@ -9,21 +9,21 @@
       "coverImage": "/uploads/places/kamelizer/89a865f5-12d6-42ac-9b55-40318351eee6_thumb.webp",
       "photos": [
         {
-          "id": "89a865f5-12d6-42ac-9b55-40318351eee6",
-          "src": "/uploads/places/kamelizer/89a865f5-12d6-42ac-9b55-40318351eee6.webp",
-          "thumbnail": "/uploads/places/kamelizer/89a865f5-12d6-42ac-9b55-40318351eee6_thumb.webp",
-          "alt": "3H0A8920 fff",
-          "width": 2000,
-          "height": 1250,
-          "order": 0
-        },
-        {
           "id": "0cbe9290-d3d0-4a3f-9dbd-3e7f232cc627",
           "src": "/uploads/places/kamelizer/0cbe9290-d3d0-4a3f-9dbd-3e7f232cc627.webp",
           "thumbnail": "/uploads/places/kamelizer/0cbe9290-d3d0-4a3f-9dbd-3e7f232cc627_thumb.webp",
           "alt": "3H0A8962",
           "width": 1600,
           "height": 2000,
+          "order": 0
+        },
+        {
+          "id": "89a865f5-12d6-42ac-9b55-40318351eee6",
+          "src": "/uploads/places/kamelizer/89a865f5-12d6-42ac-9b55-40318351eee6.webp",
+          "thumbnail": "/uploads/places/kamelizer/89a865f5-12d6-42ac-9b55-40318351eee6_thumb.webp",
+          "alt": "3H0A8920 fff",
+          "width": 2000,
+          "height": 1250,
           "order": 1
         },
         {
@@ -46,7 +46,7 @@
         }
       ],
       "createdAt": "2026-03-21T20:56:41.222Z",
-      "updatedAt": "2026-03-21T23:14:40.081Z",
+      "updatedAt": "2026-03-24T09:53:57.988Z",
       "location": "district 5"
     }
   ],

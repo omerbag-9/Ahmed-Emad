@@ -1,0 +1,44 @@
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), transform 0.15s ease;
+  z-index: 4;
+}
+
+.btn:hover {
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.btn:active {
+  transform: scale(0.94);
+}
+
+/* Bottom-right on the composed photo (slider wraps image in aspect-matched .photoFrame) */
+.btnSlider {
+  position: absolute;
+  bottom: max(0.5rem, 2%);
+  right: max(0.5rem, 2%);
+  left: auto;
+  z-index: 9;
+}
+
+@media (min-width: 901px) {
+  .btnSlider {
+    bottom: max(0.65rem, 2.5%);
+    right: max(0.65rem, 2.5%);
+  }
+}

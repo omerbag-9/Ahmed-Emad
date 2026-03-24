@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import ResponsiveGallery from '@/components/ResponsiveGallery';
-import Lightbox from '@/components/Lightbox';
 import PageLoader from '@/components/PageLoader';
 import portfolioStyles from './portfolio.module.css';
 
@@ -16,7 +15,6 @@ interface Photo {
 }
 
 export default function PortfolioPage() {
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [allPhotos, setAllPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,19 +37,7 @@ export default function PortfolioPage() {
 
   return (
     <div className={portfolioStyles.pageRoot}>
-      <ResponsiveGallery
-        photos={allPhotos}
-        onPhotoClick={(index) => setLightboxIndex(index)}
-      />
-
-      {lightboxIndex !== null && (
-        <Lightbox
-          photos={allPhotos}
-          currentIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-          onNavigate={(index) => setLightboxIndex(index)}
-        />
-      )}
+      <ResponsiveGallery photos={allPhotos} />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from 'react';
 import ResponsiveGallery from '@/components/ResponsiveGallery';
-import Lightbox from '@/components/Lightbox';
 import PageLoader from '@/components/PageLoader';
 import portfolioStyles from '../portfolio.module.css';
 import styles from './category.module.css';
@@ -27,7 +26,6 @@ interface Place {
 export default function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const { category } = use(params);
   const [places, setPlaces] = useState<Place[]>([]);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [allPhotos, setAllPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,8 +34,8 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
   useEffect(() => {
     setLoading(true);
     fetch('/api/places')
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         const filtered = (data.places || []).filter(
           (p: Place) => p.category.toLowerCase() === category.toLowerCase()
         );
@@ -60,22 +58,12 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
     <div className={portfolioStyles.pageRoot}>
       <div className={styles.header}>
         <h1 className={styles.title}>{categoryName}</h1>
-        <p className={styles.count}>{allPhotos.length} photos · {places.length} projects</p>
+        <p className={styles.count}>
+          {allPhotos.length} photos · {places.length} projects
+        </p>
       </div>
 
-      <ResponsiveGallery
-        photos={allPhotos}
-        onPhotoClick={(index) => setLightboxIndex(index)}
-      />
-
-      {lightboxIndex !== null && (
-        <Lightbox
-          photos={allPhotos}
-          currentIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-          onNavigate={(index) => setLightboxIndex(index)}
-        />
-      )}
+      <ResponsiveGallery photos={allPhotos} />
     </div>
   );
 }

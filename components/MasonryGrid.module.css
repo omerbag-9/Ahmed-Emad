@@ -18,7 +18,7 @@
   margin-bottom: 8px;
   opacity: 0;
   animation: fadeIn 0.5s ease forwards;
-  cursor: pointer;
+  cursor: default;
 }
 
 .item.loaded .image {
@@ -30,6 +30,14 @@
   overflow: hidden;
   background: #0a0a0a;
   line-height: 0;
+}
+
+.shareWrap {
+  position: absolute;
+  bottom: 0.35rem;
+  right: 0.35rem;
+  z-index: 4;
+  pointer-events: auto;
 }
 
 .image {
@@ -50,34 +58,12 @@
   opacity: 1;
 }
 
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--transition);
-}
-
-.viewIcon {
-  opacity: 0;
-  transform: scale(0.8);
-  transition: opacity var(--transition), transform var(--transition);
-  color: white;
-}
-
 .imageWrapper:hover .image {
   transform: scale(1.03);
 }
 
-.imageWrapper:hover .overlay {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.imageWrapper:hover .viewIcon {
-  opacity: 1;
-  transform: scale(1);
+.imageWrapper:hover .imageFill {
+  transform: scale(1.03);
 }
 
 .empty {
@@ -148,10 +134,6 @@
 
 .masonryMobileTwoCol .imageWrapper:hover .imageFill {
   transform: scale(1.03);
-}
-
-.masonryMobileTwoCol .overlay {
-  display: none;
 }
 
 /* Cell width tracks actual gallery height (inset rectangle), not full viewport */

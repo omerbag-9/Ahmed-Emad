@@ -60,6 +60,7 @@
   position: relative;
   max-width: 95vw;
   max-height: 80vh;
+  -webkit-touch-callout: none;
 }
 
 .image {
@@ -77,6 +78,17 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: auto;
+}
+
+/* Discourage print / Save as PDF of the artwork on the share URL only */
+@media print {
+  .imageSection {
+    display: none;
+  }
 }
 
 .info {

@@ -63,10 +63,13 @@
   border-radius: 8px;
   overflow: hidden;
   background: var(--bg-tertiary);
+  -webkit-touch-callout: none;
 }
 
 .portrait {
   object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .copy {

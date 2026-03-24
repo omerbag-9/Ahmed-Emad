@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import PhotoShareButton from '@/components/PhotoShareButton';
 import styles from './MasonryGrid.module.css';
 
 const MOBILE_GRID_MQ = '(max-width: 900px)';
@@ -17,10 +18,9 @@ interface Photo {
 
 interface MasonryGridProps {
   photos: Photo[];
-  onPhotoClick?: (index: number) => void;
 }
 
-export default function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) {
+export default function MasonryGrid({ photos }: MasonryGridProps) {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [mobileTwoCol, setMobileTwoCol] = useState(false);
 
@@ -33,7 +33,7 @@ export default function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) 
   }, []);
 
   const handleImageLoad = (id: string) => {
-    setLoadedImages(prev => new Set(prev).add(id));
+    setLoadedImages((prev) => new Set(prev).add(id));
   };
 
   if (photos.length === 0) {
@@ -51,9 +51,11 @@ export default function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) 
           key={photo.id}
           className={`${styles.item} ${loadedImages.has(photo.id) ? styles.loaded : ''}`}
           style={{ animationDelay: `${index * 0.05}s` }}
-          onClick={() => onPhotoClick?.(index)}
         >
-          <div className={styles.imageWrapper} onContextMenu={(e) => e.preventDefault()}>
+          <div
+            className={`${styles.imageWrapper} noImageSave`}
+            onContextMenu={(e) => e.preventDefault()}
+          >
             {mobileTwoCol ? (
               <Image
                 src={photo.src}
@@ -82,14 +84,8 @@ export default function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) 
                 onDragStart={(e) => e.preventDefault()}
               />
             )}
-            <div className={styles.overlay}>
-              <span className={styles.viewIcon}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.35-4.35" />
-                  <path d="M11 8v6M8 11h6" />
-                </svg>
-              </span>
+            <div className={styles.shareWrap}>
+              <PhotoShareButton photoId={photo.id} />
             </div>
           </div>
         </div>

@@ -12,9 +12,14 @@
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
-  /* FAB is fixed and overlays the corner — no reserved strip (avoids black gap) */
   container-type: size;
   container-name: mobile-gallery;
+}
+
+@media (min-width: 901px) {
+  .wrapWithToolbar {
+    min-height: min(88vh, 960px);
+  }
 }
 
 .wrapWithToolbar > :first-child {
@@ -23,12 +28,13 @@
   min-width: 0;
 }
 
-/* Portaled to document.body — single floating control, not a full-width bar */
+/* Portaled FAB — mobile/tablet: bottom-left; desktop: bottom-right */
 .floatToggle {
   display: flex;
   position: fixed;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   left: max(14px, env(safe-area-inset-left, 0px));
+  right: auto;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   z-index: 220;
   width: 52px;
   height: 52px;
@@ -49,6 +55,24 @@
     color var(--transition);
 }
 
+/* Mobile drawer open: clear 248px sidebar */
+.floatToggleNavOpen {
+  left: calc(248px + max(14px, env(safe-area-inset-left, 0px)));
+}
+
+@media (min-width: 901px) {
+  .floatToggle {
+    left: auto;
+    right: max(14px, env(safe-area-inset-right, 0px));
+    transition: transform 0.2s ease, background var(--transition), color var(--transition);
+  }
+
+  .floatToggleNavOpen {
+    left: auto;
+    right: max(14px, env(safe-area-inset-right, 0px));
+  }
+}
+
 .floatToggle:active {
   transform: scale(0.92);
 }
@@ -56,19 +80,4 @@
 .floatToggle:hover {
   background: rgba(22, 22, 22, 0.55);
   color: #fff;
-}
-
-/* Mobile drawer open: same bottom-left placement, offset by sidebar width so it doesn’t sit on the panel */
-.floatToggleNavOpen {
-  left: calc(248px + max(14px, env(safe-area-inset-left, 0px)));
-}
-
-@media (min-width: 901px) {
-  .floatToggle {
-    display: none !important;
-  }
-
-  .wrapWithToolbar {
-    padding-bottom: 0;
-  }
 }

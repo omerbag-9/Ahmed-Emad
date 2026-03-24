@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from 'react';
 import ResponsiveGallery from '@/components/ResponsiveGallery';
-import Lightbox from '@/components/Lightbox';
 import PageLoader from '@/components/PageLoader';
 import portfolioStyles from '../../portfolio.module.css';
 import styles from '../category.module.css';
@@ -28,15 +27,14 @@ interface Place {
 export default function PlacePage({ params }: { params: Promise<{ category: string; slug: string }> }) {
   const { category, slug } = use(params);
   const [place, setPlace] = useState<Place | null>(null);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'missing'>('loading');
 
   useEffect(() => {
     let cancelled = false;
     setStatus('loading');
     fetch('/api/places')
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (cancelled) return;
         const found = (data.places || []).find(
           (p: Place) => p.slug === slug && p.category.toLowerCase() === category.toLowerCase()
@@ -76,24 +74,10 @@ export default function PlacePage({ params }: { params: Promise<{ category: stri
       <div className={styles.header}>
         <h1 className={styles.title}>{place.name}</h1>
         <p className={styles.count}>{place.photos.length} photos</p>
-        {place.description && (
-          <p className={styles.description}>{place.description}</p>
-        )}
+        {place.description && <p className={styles.description}>{place.description}</p>}
       </div>
 
-      <ResponsiveGallery
-        photos={place.photos}
-        onPhotoClick={(index) => setLightboxIndex(index)}
-      />
-
-      {lightboxIndex !== null && (
-        <Lightbox
-          photos={place.photos}
-          currentIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-          onNavigate={(index) => setLightboxIndex(index)}
-        />
-      )}
+      <ResponsiveGallery photos={place.photos} />
     </div>
   );
 }

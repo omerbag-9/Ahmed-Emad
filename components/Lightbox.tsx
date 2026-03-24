@@ -84,7 +84,7 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
       <div className={styles.backdrop} onClick={onClose} />
       
       <div className={styles.content}>
-        <div className={styles.imageContainer}>
+        <div className={`${styles.imageContainer} noImageSave`}>
           <Image
             src={photo.src}
             alt={photo.alt}

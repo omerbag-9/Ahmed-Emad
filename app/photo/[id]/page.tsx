@@ -1,3 +1,4 @@
+import PhotoShareProtect from '@/components/PhotoShareProtect';
 import { getPlaces } from '@/lib/data';
 import { getPortfolioPhotoById } from '@/lib/portfolio';
 import { notFound } from 'next/navigation';
@@ -64,7 +65,7 @@ export default async function PhotoPage({ params }: Props) {
         </div>
 
         <div className={styles.imageSection}>
-          <div className={styles.imageContainer}>
+          <PhotoShareProtect className={`${styles.imageContainer} noImageSave`}>
             <Image
               src={portfolioPhoto.src}
               alt={portfolioPhoto.alt}
@@ -75,8 +76,8 @@ export default async function PhotoPage({ params }: Props) {
               className={styles.image}
               draggable={false}
             />
-            <div className={styles.imageProtect} />
-          </div>
+            <div className={styles.imageProtect} aria-hidden />
+          </PhotoShareProtect>
         </div>
 
         <div className={styles.info}>
@@ -121,7 +122,7 @@ export default async function PhotoPage({ params }: Props) {
       </div>
 
       <div className={styles.imageSection}>
-        <div className={styles.imageContainer}>
+        <PhotoShareProtect className={`${styles.imageContainer} noImageSave`}>
           <Image
             src={foundPhoto.src}
             alt={foundPhoto.alt}
@@ -132,8 +133,8 @@ export default async function PhotoPage({ params }: Props) {
             className={styles.image}
             draggable={false}
           />
-          <div className={styles.imageProtect} />
-        </div>
+          <div className={styles.imageProtect} aria-hidden />
+        </PhotoShareProtect>
       </div>
 
       <div className={styles.info}>

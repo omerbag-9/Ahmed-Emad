@@ -24,7 +24,7 @@ export default function AboutPage() {
           <div className={styles.visual}>
             <div className={styles.portraitBlock}>
               <div className={styles.frame} aria-hidden />
-              <div className={styles.imageWrap}>
+              <div className={`${styles.imageWrap} noImageSave`}>
                 <Image
                   src={a.imageSrc}
                   alt={a.imageAlt.trim() || 'Portrait'}
@@ -32,6 +32,7 @@ export default function AboutPage() {
                   className={styles.portrait}
                   sizes="(max-width: 900px) min(100vw, 22rem), 28vw"
                   priority
+                  draggable={false}
                 />
               </div>
             </div>

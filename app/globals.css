@@ -32,6 +32,7 @@
 
 html {
   scroll-behavior: smooth;
+  touch-action: manipulation;
 }
 
 body {
@@ -42,6 +43,19 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+/**
+ * Discourage mobile long-press “Save image” / callout (esp. iOS Safari).
+ * Does not prevent screenshots or determined extraction.
+ */
+.noImageSave,
+.noImageSave img,
+.noImageSave :is(span, picture) {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 /* Custom Scrollbar */
