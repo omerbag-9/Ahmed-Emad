@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import { createClient } from 'redis';
 import fs from 'fs';
 import path from 'path';
 import type { DataStore, Photo } from './types';
@@ -12,18 +13,96 @@ const K_PLACES = 'ae:v1:places';
 const K_PORTFOLIO = 'ae:v1:portfolio';
 const K_ABOUT = 'ae:v1:about';
 
-function getRedis(): Redis | null {
-  const url =
+/** Unified read/write: Upstash REST or TCP via REDIS_URL (Vercel Marketplace Redis). */
+interface StoreRedis {
+  get<T>(key: string): Promise<T | null>;
+  set(key: string, value: unknown): Promise<void>;
+}
+
+/** One TCP client per server instance (Vercel isolates instances). */
+let tcpSingleton: ReturnType<typeof createClient> | undefined;
+
+async function getTcpClient(url: string): Promise<ReturnType<typeof createClient>> {
+  if (!tcpSingleton) {
+    const client = createClient({ url });
+    client.on('error', (err) => console.error('Redis (REDIS_URL) error:', err));
+    await client.connect();
+    tcpSingleton = client;
+  }
+  return tcpSingleton;
+}
+
+async function createStoreRedis(): Promise<StoreRedis | null> {
+  const restUrl =
     process.env.UPSTASH_REDIS_REST_URL?.trim() || process.env.KV_REST_API_URL?.trim();
-  const token =
+  const restToken =
     process.env.UPSTASH_REDIS_REST_TOKEN?.trim() || process.env.KV_REST_API_TOKEN?.trim();
-  if (!url || !token) return null;
-  return new Redis({ url, token });
+
+  if (restUrl && restToken) {
+    const r = new Redis({ url: restUrl, token: restToken });
+    return {
+      get: <T>(key: string) => r.get<T>(key),
+      set: async (key: string, value: unknown) => {
+        await r.set(key, value as never);
+      },
+    };
+  }
+
+  const tcpUrl =
+    process.env.REDIS_URL?.trim() ||
+    process.env.redis_url?.trim() ||
+    process.env.KV_URL?.trim();
+
+  if (tcpUrl) {
+    const tcp = await getTcpClient(tcpUrl);
+    return {
+      get: async <T>(key: string): Promise<T | null> => {
+        const raw = await tcp.get(key);
+        if (raw == null) return null;
+        try {
+          return JSON.parse(raw) as T;
+        } catch {
+          return null;
+        }
+      },
+      set: async (key: string, value: unknown) => {
+        await tcp.set(key, JSON.stringify(value));
+      },
+    };
+  }
+
+  return null;
+}
+
+let storePromise: Promise<StoreRedis | null> | null = null;
+
+async function getStoreRedis(): Promise<StoreRedis | null> {
+  if (storePromise === null) {
+    storePromise = createStoreRedis().catch((e) => {
+      console.error('Redis init failed:', e);
+      storePromise = null;
+      return null;
+    });
+  }
+  return storePromise;
+}
+
+function trimEnv(name: string): string | undefined {
+  const v = process.env[name];
+  return typeof v === 'string' ? v.trim() : undefined;
 }
 
 /** When true, site JSON is read/written via Redis (required for admin mutations on Vercel). */
 export function usesRemoteSiteData(): boolean {
-  return getRedis() !== null;
+  const hasRest =
+    !!(trimEnv('UPSTASH_REDIS_REST_URL') && trimEnv('UPSTASH_REDIS_REST_TOKEN')) ||
+    !!(trimEnv('KV_REST_API_URL') && trimEnv('KV_REST_API_TOKEN'));
+  const hasTcp = !!(
+    trimEnv('REDIS_URL') ||
+    (typeof process.env.redis_url === 'string' && process.env.redis_url.trim()) ||
+    trimEnv('KV_URL')
+  );
+  return hasRest || hasTcp;
 }
 
 const defaultPlaces = (): DataStore => ({
@@ -41,7 +120,7 @@ function readPlacesFromDisk(): DataStore {
 }
 
 export async function loadPlacesStore(): Promise<DataStore> {
-  const r = getRedis();
+  const r = await getStoreRedis();
   if (!r) return readPlacesFromDisk();
 
   const data = await r.get<DataStore>(K_PLACES);
@@ -55,7 +134,7 @@ export async function loadPlacesStore(): Promise<DataStore> {
 }
 
 export async function savePlacesStore(data: DataStore): Promise<void> {
-  const r = getRedis();
+  const r = await getStoreRedis();
   if (!r) {
     fs.writeFileSync(PLACES_PATH, JSON.stringify(data, null, 2), 'utf-8');
     return;
@@ -78,7 +157,7 @@ function readPortfolioFromDisk(): PortfolioStore {
 }
 
 export async function loadPortfolioStore(): Promise<PortfolioStore> {
-  const r = getRedis();
+  const r = await getStoreRedis();
   if (!r) return readPortfolioFromDisk();
 
   const data = await r.get<PortfolioStore>(K_PORTFOLIO);
@@ -92,7 +171,7 @@ export async function loadPortfolioStore(): Promise<PortfolioStore> {
 }
 
 export async function savePortfolioStore(data: PortfolioStore): Promise<void> {
-  const r = getRedis();
+  const r = await getStoreRedis();
   if (!r) {
     const dir = path.dirname(PORTFOLIO_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -138,7 +217,7 @@ function readAboutFromDisk(): AboutContent {
 }
 
 export async function loadAboutStore(): Promise<AboutContent> {
-  const r = getRedis();
+  const r = await getStoreRedis();
   if (!r) return readAboutFromDisk();
 
   const data = await r.get<AboutContent>(K_ABOUT);
@@ -152,7 +231,7 @@ export async function loadAboutStore(): Promise<AboutContent> {
 }
 
 export async function saveAboutStore(data: AboutContent): Promise<void> {
-  const r = getRedis();
+  const r = await getStoreRedis();
   if (!r) {
     const dir = path.dirname(ABOUT_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
