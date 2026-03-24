@@ -4,7 +4,7 @@ import { getAboutContent } from '@/lib/about';
 import styles from './about.module.css';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const a = getAboutContent();
+  const a = await getAboutContent();
   const desc = a.lead.trim().slice(0, 160) || 'About the practice.';
   return {
     title: `${a.title.trim() || 'About'} | Ahmed Emad Photographs`,
@@ -12,8 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function AboutPage() {
-  const a = getAboutContent();
+export default async function AboutPage() {
+  const a = await getAboutContent();
   const paragraphs = [a.lead, a.body, a.bodyExtra].map((p) => p.trim()).filter(Boolean);
   const hasImage = Boolean(a.imageSrc?.trim());
 

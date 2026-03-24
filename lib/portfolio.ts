@@ -1,43 +1,32 @@
-import fs from 'fs';
-import path from 'path';
 import type { Photo } from './types';
 import { sortPhotosByOrder } from './data';
 import { removePhotoStoredFiles } from './imageCleanup';
-
-const PORTFOLIO_PATH = path.join(process.cwd(), 'data', 'portfolio.json');
+import { loadPortfolioStore, savePortfolioStore } from './siteDataStore';
 
 interface PortfolioStore {
   photos: Photo[];
 }
 
-function read(): PortfolioStore {
-  try {
-    const raw = fs.readFileSync(PORTFOLIO_PATH, 'utf-8');
-    const parsed = JSON.parse(raw) as { photos?: Photo[] };
-    return { photos: Array.isArray(parsed.photos) ? parsed.photos : [] };
-  } catch {
-    return { photos: [] };
-  }
+async function read(): Promise<PortfolioStore> {
+  return loadPortfolioStore();
 }
 
-function write(data: PortfolioStore): void {
-  const dir = path.dirname(PORTFOLIO_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  fs.writeFileSync(PORTFOLIO_PATH, JSON.stringify(data, null, 2), 'utf-8');
+async function write(data: PortfolioStore): Promise<void> {
+  await savePortfolioStore(data);
 }
 
-export function getPortfolioGalleryPhotos(): Photo[] {
-  return sortPhotosByOrder(read().photos);
+export async function getPortfolioGalleryPhotos(): Promise<Photo[]> {
+  return sortPhotosByOrder((await read()).photos);
 }
 
-export function getPortfolioPhotoById(id: string): Photo | undefined {
-  return read().photos.find((p) => p.id === id);
+export async function getPortfolioPhotoById(id: string): Promise<Photo | undefined> {
+  return (await read()).photos.find((p) => p.id === id);
 }
 
-export function addPortfolioGalleryPhotos(photos: Omit<Photo, 'order'>[]): Photo[] {
-  const data = read();
+export async function addPortfolioGalleryPhotos(
+  photos: Omit<Photo, 'order'>[]
+): Promise<Photo[]> {
+  const data = await read();
   const currentMax =
     data.photos.length > 0
       ? Math.max(...data.photos.map((p) => p.order ?? 0))
@@ -47,12 +36,12 @@ export function addPortfolioGalleryPhotos(photos: Omit<Photo, 'order'>[]): Photo
     order: currentMax + 1 + i,
   }));
   data.photos.push(...newPhotos);
-  write(data);
+  await write(data);
   return getPortfolioGalleryPhotos();
 }
 
 export async function deletePortfolioGalleryPhoto(photoId: string): Promise<boolean> {
-  const data = read();
+  const data = await read();
   const index = data.photos.findIndex((p) => p.id === photoId);
   if (index === -1) return false;
 
@@ -61,12 +50,12 @@ export async function deletePortfolioGalleryPhoto(photoId: string): Promise<bool
 
   data.photos.splice(index, 1);
   data.photos = sortPhotosByOrder(data.photos).map((p, i) => ({ ...p, order: i }));
-  write(data);
+  await write(data);
   return true;
 }
 
-export function reorderPortfolioPhotos(orderedIds: string[]): boolean {
-  const data = read();
+export async function reorderPortfolioPhotos(orderedIds: string[]): Promise<boolean> {
+  const data = await read();
   if (orderedIds.length !== data.photos.length) return false;
   const seen = new Set<string>();
   for (const id of orderedIds) {
@@ -82,6 +71,6 @@ export function reorderPortfolioPhotos(orderedIds: string[]): boolean {
     const ph = byId.get(id)!;
     return { ...ph, order: i };
   });
-  write(data);
+  await write(data);
   return true;
 }

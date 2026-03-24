@@ -3,40 +3,36 @@ import path from 'path';
 import { DataStore, Place, Photo } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { removePhotoStoredFiles } from './imageCleanup';
+import { loadPlacesStore, savePlacesStore } from './siteDataStore';
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'places.json');
-
-function readData(): DataStore {
-  try {
-    const raw = fs.readFileSync(DATA_PATH, 'utf-8');
-    return JSON.parse(raw);
-  } catch {
-    return { places: [], categories: ['Cultural', 'Residential', 'Hospitality', 'Restaurants', 'Workspaces'] };
-  }
+async function readData(): Promise<DataStore> {
+  return loadPlacesStore();
 }
 
-function writeData(data: DataStore): void {
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
+async function writeData(data: DataStore): Promise<void> {
+  await savePlacesStore(data);
 }
 
-export function getCategories(): string[] {
-  return readData().categories;
+export async function getCategories(): Promise<string[]> {
+  return (await readData()).categories;
 }
 
-export function getPlaces(): Place[] {
-  return readData().places;
+export async function getPlaces(): Promise<Place[]> {
+  return (await readData()).places;
 }
 
-export function getPlaceById(id: string): Place | undefined {
-  return readData().places.find(p => p.id === id);
+export async function getPlaceById(id: string): Promise<Place | undefined> {
+  return (await readData()).places.find(p => p.id === id);
 }
 
-export function getPlaceBySlug(slug: string): Place | undefined {
-  return readData().places.find(p => p.slug === slug);
+export async function getPlaceBySlug(slug: string): Promise<Place | undefined> {
+  return (await readData()).places.find(p => p.slug === slug);
 }
 
-export function getPlacesByCategory(category: string): Place[] {
-  return readData().places.filter(p => p.category.toLowerCase() === category.toLowerCase());
+export async function getPlacesByCategory(category: string): Promise<Place[]> {
+  return (await readData()).places.filter(
+    p => p.category.toLowerCase() === category.toLowerCase()
+  );
 }
 
 function slugify(text: string): string {
@@ -46,13 +42,13 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-export function createPlace(
+export async function createPlace(
   name: string,
   category: string,
   description: string,
   location = ''
-): Place {
-  const data = readData();
+): Promise<Place> {
+  const data = await readData();
   const place: Place = {
     id: uuidv4(),
     name,
@@ -66,15 +62,15 @@ export function createPlace(
     updatedAt: new Date().toISOString(),
   };
   data.places.push(place);
-  writeData(data);
+  await writeData(data);
   return place;
 }
 
-export function updatePlace(
+export async function updatePlace(
   id: string,
   updates: Partial<Pick<Place, 'name' | 'category' | 'description' | 'location'>>
-): Place | null {
-  const data = readData();
+): Promise<Place | null> {
+  const data = await readData();
   const index = data.places.findIndex(p => p.id === id);
   if (index === -1) return null;
 
@@ -90,12 +86,12 @@ export function updatePlace(
   }
   data.places[index].updatedAt = new Date().toISOString();
 
-  writeData(data);
+  await writeData(data);
   return data.places[index];
 }
 
 export async function deletePlace(id: string): Promise<boolean> {
-  const data = readData();
+  const data = await readData();
   const index = data.places.findIndex(p => p.id === id);
   if (index === -1) return false;
 
@@ -110,18 +106,22 @@ export async function deletePlace(id: string): Promise<boolean> {
   }
 
   data.places.splice(index, 1);
-  writeData(data);
+  await writeData(data);
   return true;
 }
 
-export function addPhotosToPlace(placeId: string, photos: Omit<Photo, 'order'>[]): Place | null {
-  const data = readData();
+export async function addPhotosToPlace(
+  placeId: string,
+  photos: Omit<Photo, 'order'>[]
+): Promise<Place | null> {
+  const data = await readData();
   const index = data.places.findIndex(p => p.id === placeId);
   if (index === -1) return null;
 
-  const currentMax = data.places[index].photos.length > 0
-    ? Math.max(...data.places[index].photos.map(p => p.order))
-    : -1;
+  const currentMax =
+    data.places[index].photos.length > 0
+      ? Math.max(...data.places[index].photos.map(p => p.order))
+      : -1;
 
   const newPhotos = photos.map((photo, i) => ({
     ...photo,
@@ -134,12 +134,12 @@ export function addPhotosToPlace(placeId: string, photos: Omit<Photo, 'order'>[]
   }
   data.places[index].updatedAt = new Date().toISOString();
 
-  writeData(data);
+  await writeData(data);
   return data.places[index];
 }
 
 export async function deletePhoto(placeId: string, photoId: string): Promise<boolean> {
-  const data = readData();
+  const data = await readData();
   const placeIndex = data.places.findIndex(p => p.id === placeId);
   if (placeIndex === -1) return false;
 
@@ -151,18 +151,17 @@ export async function deletePhoto(placeId: string, photoId: string): Promise<boo
 
   data.places[placeIndex].photos.splice(photoIndex, 1);
 
-  // Update cover if deleted photo was cover
   if (data.places[placeIndex].coverImage === photo.thumbnail) {
     data.places[placeIndex].coverImage = data.places[placeIndex].photos[0]?.thumbnail || '';
   }
 
   data.places[placeIndex].updatedAt = new Date().toISOString();
-  writeData(data);
+  await writeData(data);
   return true;
 }
 
-export function setCoverImage(placeId: string, photoId: string): boolean {
-  const data = readData();
+export async function setCoverImage(placeId: string, photoId: string): Promise<boolean> {
+  const data = await readData();
   const placeIndex = data.places.findIndex(p => p.id === placeId);
   if (placeIndex === -1) return false;
 
@@ -171,7 +170,7 @@ export function setCoverImage(placeId: string, photoId: string): boolean {
 
   data.places[placeIndex].coverImage = photo.thumbnail;
   data.places[placeIndex].updatedAt = new Date().toISOString();
-  writeData(data);
+  await writeData(data);
   return true;
 }
 
@@ -186,9 +185,8 @@ export function placesWithSortedPhotos(places: Place[]): Place[] {
   }));
 }
 
-/** Reorder projects in storage — first place appears first on the main portfolio grid. */
-export function reorderPlaces(orderedIds: string[]): boolean {
-  const data = readData();
+export async function reorderPlaces(orderedIds: string[]): Promise<boolean> {
+  const data = await readData();
   if (orderedIds.length !== data.places.length) return false;
   const seen = new Set<string>();
   for (const id of orderedIds) {
@@ -201,13 +199,15 @@ export function reorderPlaces(orderedIds: string[]): boolean {
   }
   const byId = new Map(data.places.map((p) => [p.id, p]));
   data.places = orderedIds.map((id) => byId.get(id)!);
-  writeData(data);
+  await writeData(data);
   return true;
 }
 
-/** Set photo order for a place — lower order / earlier in the list shows first. */
-export function reorderPlacePhotos(placeId: string, orderedPhotoIds: string[]): Place | null {
-  const data = readData();
+export async function reorderPlacePhotos(
+  placeId: string,
+  orderedPhotoIds: string[]
+): Promise<Place | null> {
+  const data = await readData();
   const placeIndex = data.places.findIndex((p) => p.id === placeId);
   if (placeIndex === -1) return null;
 
@@ -226,6 +226,6 @@ export function reorderPlacePhotos(placeId: string, orderedPhotoIds: string[]): 
 
   data.places[placeIndex].photos = newPhotos;
   data.places[placeIndex].updatedAt = new Date().toISOString();
-  writeData(data);
+  await writeData(data);
   return data.places[placeIndex];
 }

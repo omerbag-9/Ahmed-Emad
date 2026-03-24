@@ -7,6 +7,8 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
+export const maxDuration = 60;
+
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'about');
 const CLOUD_FOLDER = 'ahmedemad/about';
 

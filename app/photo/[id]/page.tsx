@@ -13,7 +13,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const portfolioPhoto = getPortfolioPhotoById(id);
+  const portfolioPhoto = await getPortfolioPhotoById(id);
   if (portfolioPhoto) {
     const title = portfolioPhoto.alt || 'Portfolio';
     return {
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const places = getPlaces();
+  const places = await getPlaces();
 
   for (const place of places) {
     const photo = place.photos.find(p => p.id === id);
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PhotoPage({ params }: Props) {
   const { id } = await params;
-  const portfolioPhoto = getPortfolioPhotoById(id);
+  const portfolioPhoto = await getPortfolioPhotoById(id);
 
   if (portfolioPhoto) {
     return (
@@ -88,7 +88,7 @@ export default async function PhotoPage({ params }: Props) {
     );
   }
 
-  const places = getPlaces();
+  const places = await getPlaces();
 
   let foundPhoto = null;
   let foundPlace = null;

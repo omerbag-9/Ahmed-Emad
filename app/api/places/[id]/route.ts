@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const place = getPlaceById(id);
+  const place = await getPlaceById(id);
   if (!place) {
     return NextResponse.json({ error: 'Place not found' }, { status: 404 });
   }
@@ -27,7 +27,7 @@ export async function PUT(
   const { id } = await params;
   try {
     const updates = await request.json();
-    const place = updatePlace(id, updates);
+    const place = await updatePlace(id, updates);
     if (!place) {
       return NextResponse.json({ error: 'Place not found' }, { status: 404 });
     }

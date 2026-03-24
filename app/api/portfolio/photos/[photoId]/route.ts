@@ -16,5 +16,5 @@ export async function DELETE(
   if (!ok) {
     return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
   }
-  return NextResponse.json({ photos: getPortfolioGalleryPhotos() });
+  return NextResponse.json({ photos: await getPortfolioGalleryPhotos() });
 }

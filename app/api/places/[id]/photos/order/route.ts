@@ -20,7 +20,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'orderedPhotoIds array required' }, { status: 400 });
     }
 
-    const place = reorderPlacePhotos(id, orderedPhotoIds);
+    const place = await reorderPlacePhotos(id, orderedPhotoIds);
     if (!place) {
       return NextResponse.json({ error: 'Invalid place or photo list' }, { status: 400 });
     }

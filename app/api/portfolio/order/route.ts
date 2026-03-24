@@ -14,11 +14,11 @@ export async function PATCH(request: Request) {
     if (!Array.isArray(orderedPhotoIds)) {
       return NextResponse.json({ error: 'orderedPhotoIds array required' }, { status: 400 });
     }
-    const ok = reorderPortfolioPhotos(orderedPhotoIds);
+    const ok = await reorderPortfolioPhotos(orderedPhotoIds);
     if (!ok) {
       return NextResponse.json({ error: 'Invalid photo order' }, { status: 400 });
     }
-    return NextResponse.json({ photos: getPortfolioGalleryPhotos() });
+    return NextResponse.json({ photos: await getPortfolioGalleryPhotos() });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

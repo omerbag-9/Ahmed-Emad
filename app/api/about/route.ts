@@ -3,7 +3,7 @@ import { isAuthenticated } from '@/lib/auth';
 import { getAboutContent, patchAboutContent } from '@/lib/about';
 
 export async function GET() {
-  return NextResponse.json(getAboutContent());
+  return NextResponse.json(await getAboutContent());
 }
 
 export async function PATCH(request: Request) {

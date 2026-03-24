@@ -8,6 +8,8 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
+export const maxDuration = 60;
+
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'portfolio');
 const CLOUD_FOLDER = 'ahmedemad/portfolio';
 
@@ -80,7 +82,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const updated = addPortfolioGalleryPhotos(photos);
+    const updated = await addPortfolioGalleryPhotos(photos);
     return NextResponse.json({ photos: updated }, { status: 201 });
   } catch (error) {
     console.error('Portfolio upload error:', error);

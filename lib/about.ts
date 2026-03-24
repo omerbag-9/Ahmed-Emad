@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { destroyPublicIds } from './cloudinary';
-
-const ABOUT_PATH = path.join(process.cwd(), 'data', 'about.json');
+import { loadAboutStore, saveAboutStore } from './siteDataStore';
 
 export type AboutContent = {
   eyebrow: string;
@@ -26,44 +25,12 @@ export const DEFAULT_ABOUT: AboutContent = {
   imageAlt: '',
 };
 
-function read(): AboutContent {
-  try {
-    const raw = fs.readFileSync(ABOUT_PATH, 'utf-8');
-    const parsed = JSON.parse(raw) as Partial<AboutContent>;
-    return {
-      ...DEFAULT_ABOUT,
-      eyebrow: typeof parsed.eyebrow === 'string' ? parsed.eyebrow : DEFAULT_ABOUT.eyebrow,
-      title: typeof parsed.title === 'string' ? parsed.title : DEFAULT_ABOUT.title,
-      lead: typeof parsed.lead === 'string' ? parsed.lead : DEFAULT_ABOUT.lead,
-      body: typeof parsed.body === 'string' ? parsed.body : DEFAULT_ABOUT.body,
-      bodyExtra:
-        typeof parsed.bodyExtra === 'string' ? parsed.bodyExtra : DEFAULT_ABOUT.bodyExtra,
-      imageSrc: typeof parsed.imageSrc === 'string' ? parsed.imageSrc : DEFAULT_ABOUT.imageSrc,
-      imageAlt: typeof parsed.imageAlt === 'string' ? parsed.imageAlt : DEFAULT_ABOUT.imageAlt,
-      imageCloudinaryPublicId:
-        typeof parsed.imageCloudinaryPublicId === 'string'
-          ? parsed.imageCloudinaryPublicId
-          : undefined,
-    };
-  } catch {
-    return { ...DEFAULT_ABOUT };
-  }
+export async function getAboutContent(): Promise<AboutContent> {
+  return loadAboutStore();
 }
 
-function write(data: AboutContent): void {
-  const dir = path.dirname(ABOUT_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  fs.writeFileSync(ABOUT_PATH, JSON.stringify(data, null, 2), 'utf-8');
-}
-
-export function getAboutContent(): AboutContent {
-  return read();
-}
-
-export function saveAboutContent(data: AboutContent): void {
-  write(data);
+export async function saveAboutContent(data: AboutContent): Promise<void> {
+  await saveAboutStore(data);
 }
 
 /** Only delete files under /uploads/about/ */
@@ -119,7 +86,7 @@ function isAllowedImageSrc(src: string): boolean {
 }
 
 export async function patchAboutContent(patch: AboutPatch): Promise<AboutContent> {
-  const current = read();
+  const current = await loadAboutStore();
   let next: AboutContent = { ...current };
 
   if (patch.clearImage === true) {
@@ -167,6 +134,6 @@ export async function patchAboutContent(patch: AboutPatch): Promise<AboutContent
     }
   }
 
-  write(next);
+  await saveAboutStore(next);
   return next;
 }

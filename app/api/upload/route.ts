@@ -7,6 +7,8 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const authenticated = await isAuthenticated();
   if (!authenticated) {
@@ -22,7 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'placeId is required' }, { status: 400 });
     }
 
-    const place = getPlaceById(placeId);
+    const place = await getPlaceById(placeId);
     if (!place) {
       return NextResponse.json({ error: 'Place not found' }, { status: 404 });
     }
@@ -96,7 +98,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const updatedPlace = addPhotosToPlace(placeId, photos);
+    const updatedPlace = await addPhotosToPlace(placeId, photos);
     return NextResponse.json(updatedPlace, { status: 201 });
   } catch (error) {
     console.error('Upload error:', error);
