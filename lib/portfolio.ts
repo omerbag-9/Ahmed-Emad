@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import type { Photo } from './types';
 import { sortPhotosByOrder } from './data';
+import { removePhotoStoredFiles } from './imageCleanup';
 
 const PORTFOLIO_PATH = path.join(process.cwd(), 'data', 'portfolio.json');
 
@@ -50,16 +51,13 @@ export function addPortfolioGalleryPhotos(photos: Omit<Photo, 'order'>[]): Photo
   return getPortfolioGalleryPhotos();
 }
 
-export function deletePortfolioGalleryPhoto(photoId: string): boolean {
+export async function deletePortfolioGalleryPhoto(photoId: string): Promise<boolean> {
   const data = read();
   const index = data.photos.findIndex((p) => p.id === photoId);
   if (index === -1) return false;
 
   const photo = data.photos[index];
-  const srcPath = path.join(process.cwd(), 'public', photo.src);
-  const thumbPath = path.join(process.cwd(), 'public', photo.thumbnail);
-  if (fs.existsSync(srcPath)) fs.unlinkSync(srcPath);
-  if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+  await removePhotoStoredFiles(photo);
 
   data.photos.splice(index, 1);
   data.photos = sortPhotosByOrder(data.photos).map((p, i) => ({ ...p, order: i }));

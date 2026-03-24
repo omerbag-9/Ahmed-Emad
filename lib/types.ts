@@ -6,6 +6,8 @@ export interface Photo {
   width: number;
   height: number;
   order: number;
+  /** When set, used to delete Cloudinary asset(s). `thumb` only on legacy rows (second upload). */
+  cloudinary?: { main: string; thumb?: string };
 }
 
 export interface Place {

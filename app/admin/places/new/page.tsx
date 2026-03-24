@@ -17,6 +17,7 @@ export default function NewPlace() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const submitLockRef = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -55,6 +56,8 @@ export default function NewPlace() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !category) return;
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
     setLoading(true);
 
     try {
@@ -90,6 +93,7 @@ export default function NewPlace() {
       console.error('Error:', error);
       alert('Failed to create place. Please try again.');
     } finally {
+      submitLockRef.current = false;
       setLoading(false);
     }
   };

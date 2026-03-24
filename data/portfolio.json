@@ -1,67 +1,16 @@
 {
   "photos": [
     {
-      "id": "5781fb68-4053-4337-a600-9873a6b989f9",
-      "src": "/uploads/portfolio/5781fb68-4053-4337-a600-9873a6b989f9.webp",
-      "thumbnail": "/uploads/portfolio/5781fb68-4053-4337-a600-9873a6b989f9_thumb.webp",
-      "alt": "3H0A8962",
-      "width": 1600,
-      "height": 2000,
+      "id": "ff2268f0-bcfe-4e48-9490-1c6cb636c9e5",
+      "src": "https://res.cloudinary.com/dat7lfkbp/image/upload/v1774348211/ahmedemad/portfolio/ff2268f0-bcfe-4e48-9490-1c6cb636c9e5.webp",
+      "thumbnail": "https://res.cloudinary.com/dat7lfkbp/image/upload/c_limit,f_webp,h_400,w_400/v1/ahmedemad/portfolio/ff2268f0-bcfe-4e48-9490-1c6cb636c9e5?_a=BAMAAAfk0",
+      "cloudinary": {
+        "main": "ahmedemad/portfolio/ff2268f0-bcfe-4e48-9490-1c6cb636c9e5"
+      },
+      "alt": "omer_exif",
+      "width": 906,
+      "height": 907,
       "order": 0
-    },
-    {
-      "id": "9d6fd681-8850-4a12-ae65-2eade870cc77",
-      "src": "/uploads/portfolio/9d6fd681-8850-4a12-ae65-2eade870cc77.webp",
-      "thumbnail": "/uploads/portfolio/9d6fd681-8850-4a12-ae65-2eade870cc77_thumb.webp",
-      "alt": "3H0A9041",
-      "width": 1600,
-      "height": 2000,
-      "order": 1
-    },
-    {
-      "id": "85c4140c-71d5-46dc-bf93-3d4a367e189e",
-      "src": "/uploads/portfolio/85c4140c-71d5-46dc-bf93-3d4a367e189e.webp",
-      "thumbnail": "/uploads/portfolio/85c4140c-71d5-46dc-bf93-3d4a367e189e_thumb.webp",
-      "alt": "3H0A8920 fff",
-      "width": 2000,
-      "height": 1250,
-      "order": 2
-    },
-    {
-      "id": "e7b5ab42-8595-4dce-a1ff-bb94373377fb",
-      "src": "/uploads/portfolio/e7b5ab42-8595-4dce-a1ff-bb94373377fb.webp",
-      "thumbnail": "/uploads/portfolio/e7b5ab42-8595-4dce-a1ff-bb94373377fb_thumb.webp",
-      "alt": "3H0A9054-4",
-      "width": 1600,
-      "height": 2000,
-      "order": 3
-    },
-    {
-      "id": "7c6c29d6-da4d-47c1-8507-abf4181fa063",
-      "src": "/uploads/portfolio/7c6c29d6-da4d-47c1-8507-abf4181fa063.webp",
-      "thumbnail": "/uploads/portfolio/7c6c29d6-da4d-47c1-8507-abf4181fa063_thumb.webp",
-      "alt": "3H0A9086-2",
-      "width": 2000,
-      "height": 1250,
-      "order": 4
-    },
-    {
-      "id": "261b48a3-80ec-468b-9752-c815b9f22142",
-      "src": "/uploads/portfolio/261b48a3-80ec-468b-9752-c815b9f22142.webp",
-      "thumbnail": "/uploads/portfolio/261b48a3-80ec-468b-9752-c815b9f22142_thumb.webp",
-      "alt": "3H0A9096-2",
-      "width": 1600,
-      "height": 2000,
-      "order": 5
-    },
-    {
-      "id": "1d56a9fa-f9ab-4a54-a7be-5d8851bd27bc",
-      "src": "/uploads/portfolio/1d56a9fa-f9ab-4a54-a7be-5d8851bd27bc.webp",
-      "thumbnail": "/uploads/portfolio/1d56a9fa-f9ab-4a54-a7be-5d8851bd27bc_thumb.webp",
-      "alt": "3H0A9101-2",
-      "width": 1600,
-      "height": 2000,
-      "order": 6
     }
   ]
 }

@@ -19,6 +19,7 @@ export default function PortfolioGalleryAdmin() {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadLockRef = useRef(false);
 
   const fetchPhotos = async () => {
     try {
@@ -56,6 +57,7 @@ export default function PortfolioGalleryAdmin() {
       console.error(e);
       alert('Upload failed.');
     } finally {
+      uploadLockRef.current = false;
       setUploading(false);
     }
   };

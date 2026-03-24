@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { DataStore, Place, Photo } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { removePhotoStoredFiles } from './imageCleanup';
 
 const DATA_PATH = path.join(process.cwd(), 'data', 'places.json');
 
@@ -93,13 +94,16 @@ export function updatePlace(
   return data.places[index];
 }
 
-export function deletePlace(id: string): boolean {
+export async function deletePlace(id: string): Promise<boolean> {
   const data = readData();
   const index = data.places.findIndex(p => p.id === id);
   if (index === -1) return false;
 
-  // Delete the place's upload directory
   const place = data.places[index];
+  for (const photo of place.photos) {
+    await removePhotoStoredFiles(photo);
+  }
+
   const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'places', place.slug);
   if (fs.existsSync(uploadDir)) {
     fs.rmSync(uploadDir, { recursive: true });
@@ -134,7 +138,7 @@ export function addPhotosToPlace(placeId: string, photos: Omit<Photo, 'order'>[]
   return data.places[index];
 }
 
-export function deletePhoto(placeId: string, photoId: string): boolean {
+export async function deletePhoto(placeId: string, photoId: string): Promise<boolean> {
   const data = readData();
   const placeIndex = data.places.findIndex(p => p.id === placeId);
   if (placeIndex === -1) return false;
@@ -143,11 +147,7 @@ export function deletePhoto(placeId: string, photoId: string): boolean {
   if (photoIndex === -1) return false;
 
   const photo = data.places[placeIndex].photos[photoIndex];
-  // Delete physical files
-  const srcPath = path.join(process.cwd(), 'public', photo.src);
-  const thumbPath = path.join(process.cwd(), 'public', photo.thumbnail);
-  if (fs.existsSync(srcPath)) fs.unlinkSync(srcPath);
-  if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+  await removePhotoStoredFiles(photo);
 
   data.places[placeIndex].photos.splice(photoIndex, 1);
 

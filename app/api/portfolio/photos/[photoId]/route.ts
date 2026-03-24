@@ -12,7 +12,7 @@ export async function DELETE(
   }
 
   const { photoId } = await params;
-  const ok = deletePortfolioGalleryPhoto(photoId);
+  const ok = await deletePortfolioGalleryPhoto(photoId);
   if (!ok) {
     return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
   }

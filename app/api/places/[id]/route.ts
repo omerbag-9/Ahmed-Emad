@@ -47,7 +47,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const success = deletePlace(id);
+  const success = await deletePlace(id);
   if (!success) {
     return NextResponse.json({ error: 'Place not found' }, { status: 404 });
   }

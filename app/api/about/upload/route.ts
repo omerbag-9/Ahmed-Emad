@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
 import { patchAboutContent } from '@/lib/about';
+import { isCloudinaryConfigured, uploadWebpBuffer } from '@/lib/cloudinary';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'about');
+const CLOUD_FOLDER = 'ahmedemad/about';
 
 export async function POST(request: Request) {
   const authenticated = await isAuthenticated();
@@ -25,15 +27,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'File must be an image' }, { status: 400 });
     }
 
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
     const id = uuidv4();
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const fileName = `${id}.webp`;
-    const outPath = path.join(UPLOAD_DIR, fileName);
-
-    await sharp(buffer)
+    const webpBuffer = await sharp(buffer)
       .rotate()
       .resize({
         width: 1400,
@@ -42,12 +39,34 @@ export async function POST(request: Request) {
         withoutEnlargement: true,
       })
       .webp({ quality: 82 })
-      .toFile(outPath);
+      .toBuffer();
 
-    const meta = await sharp(outPath).metadata();
+    const meta = await sharp(webpBuffer).metadata();
+
+    if (isCloudinaryConfigured()) {
+      const up = await uploadWebpBuffer({
+        buffer: webpBuffer,
+        folder: CLOUD_FOLDER,
+        publicId: id,
+      });
+      const updated = await patchAboutContent({
+        imageSrc: up.secureUrl,
+        imageCloudinaryPublicId: up.publicId,
+      });
+      return NextResponse.json({
+        about: updated,
+        width: meta.width,
+        height: meta.height,
+      });
+    }
+
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    const fileName = `${id}.webp`;
+    const outPath = path.join(UPLOAD_DIR, fileName);
+    await fs.promises.writeFile(outPath, webpBuffer);
+
     const publicPath = `/uploads/about/${fileName}`;
-
-    const updated = patchAboutContent({ imageSrc: publicPath });
+    const updated = await patchAboutContent({ imageSrc: publicPath });
 
     return NextResponse.json({
       about: updated,

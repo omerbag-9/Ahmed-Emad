@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { destroyPublicIds } from './cloudinary';
 
 const ABOUT_PATH = path.join(process.cwd(), 'data', 'about.json');
 
@@ -11,6 +12,8 @@ export type AboutContent = {
   bodyExtra: string;
   imageSrc: string;
   imageAlt: string;
+  /** Cloudinary public_id for the about portrait — used when replacing or clearing */
+  imageCloudinaryPublicId?: string;
 };
 
 export const DEFAULT_ABOUT: AboutContent = {
@@ -37,6 +40,10 @@ function read(): AboutContent {
         typeof parsed.bodyExtra === 'string' ? parsed.bodyExtra : DEFAULT_ABOUT.bodyExtra,
       imageSrc: typeof parsed.imageSrc === 'string' ? parsed.imageSrc : DEFAULT_ABOUT.imageSrc,
       imageAlt: typeof parsed.imageAlt === 'string' ? parsed.imageAlt : DEFAULT_ABOUT.imageAlt,
+      imageCloudinaryPublicId:
+        typeof parsed.imageCloudinaryPublicId === 'string'
+          ? parsed.imageCloudinaryPublicId
+          : undefined,
     };
   } catch {
     return { ...DEFAULT_ABOUT };
@@ -69,6 +76,15 @@ export function deleteAboutImageFile(imageSrc: string): void {
   }
 }
 
+async function removeStoredAboutImage(content: AboutContent): Promise<void> {
+  if (content.imageCloudinaryPublicId) {
+    await destroyPublicIds([content.imageCloudinaryPublicId]);
+  }
+  if (content.imageSrc?.startsWith('/uploads/about/')) {
+    deleteAboutImageFile(content.imageSrc);
+  }
+}
+
 const LIMITS = {
   eyebrow: 160,
   title: 200,
@@ -85,17 +101,31 @@ function clip(s: string, max: number): string {
 export type AboutPatch = Partial<
   Pick<
     AboutContent,
-    'eyebrow' | 'title' | 'lead' | 'body' | 'bodyExtra' | 'imageSrc' | 'imageAlt'
+    | 'eyebrow'
+    | 'title'
+    | 'lead'
+    | 'body'
+    | 'bodyExtra'
+    | 'imageSrc'
+    | 'imageAlt'
+    | 'imageCloudinaryPublicId'
   >
 > & { clearImage?: boolean };
 
-export function patchAboutContent(patch: AboutPatch): AboutContent {
+function isAllowedImageSrc(src: string): boolean {
+  return (
+    src.startsWith('/uploads/about/') || src.startsWith('https://res.cloudinary.com/')
+  );
+}
+
+export async function patchAboutContent(patch: AboutPatch): Promise<AboutContent> {
   const current = read();
   let next: AboutContent = { ...current };
 
   if (patch.clearImage === true) {
-    if (current.imageSrc) deleteAboutImageFile(current.imageSrc);
+    await removeStoredAboutImage(current);
     next.imageSrc = '';
+    delete next.imageCloudinaryPublicId;
   }
 
   if (typeof patch.eyebrow === 'string') {
@@ -119,11 +149,21 @@ export function patchAboutContent(patch: AboutPatch): AboutContent {
   if (typeof patch.imageSrc === 'string') {
     const src = patch.imageSrc.trim();
     if (src === '') {
-      if (next.imageSrc) deleteAboutImageFile(next.imageSrc);
+      await removeStoredAboutImage(next);
       next.imageSrc = '';
-    } else if (src.startsWith('/uploads/about/')) {
-      if (next.imageSrc && next.imageSrc !== src) deleteAboutImageFile(next.imageSrc);
+      delete next.imageCloudinaryPublicId;
+    } else if (isAllowedImageSrc(src)) {
+      if (next.imageSrc && next.imageSrc !== src) {
+        await removeStoredAboutImage(next);
+      }
       next.imageSrc = src;
+      if (src.startsWith('https://res.cloudinary.com/')) {
+        if (typeof patch.imageCloudinaryPublicId === 'string' && patch.imageCloudinaryPublicId) {
+          next.imageCloudinaryPublicId = patch.imageCloudinaryPublicId;
+        }
+      } else {
+        delete next.imageCloudinaryPublicId;
+      }
     }
   }
 

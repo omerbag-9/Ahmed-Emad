@@ -42,6 +42,6 @@ export async function PATCH(request: Request) {
     }
   }
 
-  const updated = patchAboutContent(patch);
+  const updated = await patchAboutContent(patch);
   return NextResponse.json(updated);
 }

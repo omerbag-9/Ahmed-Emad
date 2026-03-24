@@ -37,6 +37,7 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const saveLockRef = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -80,6 +81,8 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !category) return;
+    if (saveLockRef.current) return;
+    saveLockRef.current = true;
     setLoading(true);
 
     try {
@@ -96,7 +99,8 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
         formData.append('placeId', id);
         newFiles.forEach(file => formData.append('photos', file));
 
-        await fetch('/api/upload', { method: 'POST', body: formData });
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) throw new Error('Upload failed');
         setUploading(false);
       }
 
@@ -106,6 +110,8 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
       console.error('Error:', error);
       alert('Failed to update place.');
     } finally {
+      saveLockRef.current = false;
+      setUploading(false);
       setLoading(false);
     }
   };

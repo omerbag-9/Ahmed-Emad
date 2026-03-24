@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
 import { addPhotosToPlace, getPlaceById } from '@/lib/data';
+import { isCloudinaryConfigured, thumbnailDeliveryUrl, uploadWebpBuffer } from '@/lib/cloudinary';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import fs from 'fs';
@@ -30,48 +31,69 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     }
 
-    // Ensure upload directory exists
+    const useCloud = isCloudinaryConfigured();
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'places', place.slug);
-    fs.mkdirSync(uploadDir, { recursive: true });
+    if (!useCloud) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
+    // ahmedemad/<project-slug>/ — slug is derived from the project name
+    const cloudFolder = `ahmedemad/${place.slug}`;
     const photos = [];
 
     for (const file of files) {
       const id = uuidv4();
       const buffer = Buffer.from(await file.arrayBuffer());
 
-      // Get image metadata
       const metadata = await sharp(buffer).metadata();
       const width = metadata.width || 1920;
       const height = metadata.height || 1080;
 
-      // Process main image (max 2000px wide, WebP, quality 80)
-      const mainFileName = `${id}.webp`;
-      const mainPath = path.join(uploadDir, mainFileName);
-      await sharp(buffer)
+      const mainBuf = await sharp(buffer)
         .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true })
         .webp({ quality: 80 })
-        .toFile(mainPath);
+        .toBuffer();
 
-      // Generate thumbnail (400px wide)
-      const thumbFileName = `${id}_thumb.webp`;
-      const thumbPath = path.join(uploadDir, thumbFileName);
-      await sharp(buffer)
-        .resize({ width: 400, height: 400, fit: 'inside', withoutEnlargement: true })
-        .webp({ quality: 70 })
-        .toFile(thumbPath);
+      const processedMeta = await sharp(mainBuf).metadata();
 
-      // Calculate aspect ratio for masonry layout
-      const processedMeta = await sharp(mainPath).metadata();
+      if (useCloud) {
+        const mainUp = await uploadWebpBuffer({
+          buffer: mainBuf,
+          folder: cloudFolder,
+          publicId: id,
+        });
+        photos.push({
+          id,
+          src: mainUp.secureUrl,
+          thumbnail: thumbnailDeliveryUrl(mainUp.publicId),
+          cloudinary: { main: mainUp.publicId },
+          alt: file.name.replace(/\.[^.]+$/, ''),
+          width: processedMeta.width || width,
+          height: processedMeta.height || height,
+        });
+      } else {
+        const thumbBuf = await sharp(buffer)
+          .resize({ width: 400, height: 400, fit: 'inside', withoutEnlargement: true })
+          .webp({ quality: 70 })
+          .toBuffer();
 
-      photos.push({
-        id,
-        src: `/uploads/places/${place.slug}/${mainFileName}`,
-        thumbnail: `/uploads/places/${place.slug}/${thumbFileName}`,
-        alt: file.name.replace(/\.[^.]+$/, ''),
-        width: processedMeta.width || width,
-        height: processedMeta.height || height,
-      });
+        const mainFileName = `${id}.webp`;
+        const mainPath = path.join(uploadDir, mainFileName);
+        await fs.promises.writeFile(mainPath, mainBuf);
+
+        const thumbFileName = `${id}_thumb.webp`;
+        const thumbPath = path.join(uploadDir, thumbFileName);
+        await fs.promises.writeFile(thumbPath, thumbBuf);
+
+        photos.push({
+          id,
+          src: `/uploads/places/${place.slug}/${mainFileName}`,
+          thumbnail: `/uploads/places/${place.slug}/${thumbFileName}`,
+          alt: file.name.replace(/\.[^.]+$/, ''),
+          width: processedMeta.width || width,
+          height: processedMeta.height || height,
+        });
+      }
     }
 
     const updatedPlace = addPhotosToPlace(placeId, photos);
