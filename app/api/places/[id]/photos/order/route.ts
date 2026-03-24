@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { reorderPlacePhotos, placesWithSortedPhotos } from '@/lib/data';
 import { isAuthenticated } from '@/lib/auth';
+import { revalidateAfterPlacesChange } from '@/lib/revalidatePublic';
 
 export async function PATCH(
   request: Request,
@@ -26,6 +27,7 @@ export async function PATCH(
     }
 
     const [sorted] = placesWithSortedPhotos([place]);
+    revalidateAfterPlacesChange();
     return NextResponse.json(sorted);
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

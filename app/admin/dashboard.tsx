@@ -37,8 +37,8 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     try {
       const [placesRes, portfolioRes] = await Promise.all([
-        fetch('/api/places'),
-        fetch('/api/portfolio'),
+        fetch('/api/places', { cache: 'no-store' }),
+        fetch('/api/portfolio', { cache: 'no-store' }),
       ]);
       const data = await placesRes.json();
       const portfolioData = await portfolioRes.json();

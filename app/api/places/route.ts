@@ -6,6 +6,9 @@ import {
   reorderPlaces,
 } from '@/lib/data';
 import { isAuthenticated } from '@/lib/auth';
+import { revalidateAfterPlacesChange } from '@/lib/revalidatePublic';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const places = placesWithSortedPhotos(await getPlaces());
@@ -31,6 +34,7 @@ export async function POST(request: Request) {
       typeof location === 'string' ? location : '',
       typeof brief === 'string' ? brief : ''
     );
+    revalidateAfterPlacesChange();
     return NextResponse.json(place, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -54,6 +58,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Invalid place order' }, { status: 400 });
     }
     const places = placesWithSortedPhotos(await getPlaces());
+    revalidateAfterPlacesChange();
     return NextResponse.json({ places });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

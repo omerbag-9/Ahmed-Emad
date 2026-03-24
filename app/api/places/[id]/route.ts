@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getPlaceById, updatePlace, deletePlace, placesWithSortedPhotos } from '@/lib/data';
 import { isAuthenticated } from '@/lib/auth';
+import { revalidateAfterPlacesChange } from '@/lib/revalidatePublic';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
@@ -31,6 +34,7 @@ export async function PUT(
     if (!place) {
       return NextResponse.json({ error: 'Place not found' }, { status: 404 });
     }
+    revalidateAfterPlacesChange();
     return NextResponse.json(place);
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -51,5 +55,6 @@ export async function DELETE(
   if (!success) {
     return NextResponse.json({ error: 'Place not found' }, { status: 404 });
   }
+  revalidateAfterPlacesChange();
   return NextResponse.json({ success: true });
 }

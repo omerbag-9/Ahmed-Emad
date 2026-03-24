@@ -16,7 +16,7 @@ export default function AboutEditor() {
 
   const load = async () => {
     try {
-      const res = await fetch('/api/about');
+      const res = await fetch('/api/about', { cache: 'no-store' });
       const json = (await res.json()) as AboutContent;
       setData(json);
     } catch {

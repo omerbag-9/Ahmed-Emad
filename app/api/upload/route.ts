@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
+import { revalidateAfterPlacesChange } from '@/lib/revalidatePublic';
 import { addPhotosToPlace, getPlaceById } from '@/lib/data';
 import { isCloudinaryConfigured, thumbnailDeliveryUrl, uploadWebpBuffer } from '@/lib/cloudinary';
 import { v4 as uuidv4 } from 'uuid';
@@ -99,6 +100,7 @@ export async function POST(request: Request) {
     }
 
     const updatedPlace = await addPhotosToPlace(placeId, photos);
+    revalidateAfterPlacesChange();
     return NextResponse.json(updatedPlace, { status: 201 });
   } catch (error) {
     console.error('Upload error:', error);

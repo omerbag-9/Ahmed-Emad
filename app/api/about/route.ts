@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { isAuthenticated } from '@/lib/auth';
 import { getAboutContent, patchAboutContent } from '@/lib/about';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   return NextResponse.json(await getAboutContent());
@@ -43,5 +46,6 @@ export async function PATCH(request: Request) {
   }
 
   const updated = await patchAboutContent(patch);
+  revalidatePath('/about');
   return NextResponse.json(updated);
 }

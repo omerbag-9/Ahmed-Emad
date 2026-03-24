@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
+import { revalidateAfterPortfolioGalleryChange } from '@/lib/revalidatePublic';
 import { deletePortfolioGalleryPhoto, getPortfolioGalleryPhotos } from '@/lib/portfolio';
 
 export async function DELETE(
@@ -16,5 +17,6 @@ export async function DELETE(
   if (!ok) {
     return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
   }
+  revalidateAfterPortfolioGalleryChange();
   return NextResponse.json({ photos: await getPortfolioGalleryPhotos() });
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
+import { revalidateAfterPortfolioGalleryChange } from '@/lib/revalidatePublic';
 import { addPortfolioGalleryPhotos } from '@/lib/portfolio';
 import { isCloudinaryConfigured, thumbnailDeliveryUrl, uploadWebpBuffer } from '@/lib/cloudinary';
 import type { Photo } from '@/lib/types';
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
     }
 
     const updated = await addPortfolioGalleryPhotos(photos);
+    revalidateAfterPortfolioGalleryChange();
     return NextResponse.json({ photos: updated }, { status: 201 });
   } catch (error) {
     console.error('Portfolio upload error:', error);

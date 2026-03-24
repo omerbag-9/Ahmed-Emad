@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
+import { revalidateAfterPortfolioGalleryChange } from '@/lib/revalidatePublic';
 import { getPortfolioGalleryPhotos, reorderPortfolioPhotos } from '@/lib/portfolio';
 
 export async function PATCH(request: Request) {
@@ -18,6 +19,7 @@ export async function PATCH(request: Request) {
     if (!ok) {
       return NextResponse.json({ error: 'Invalid photo order' }, { status: 400 });
     }
+    revalidateAfterPortfolioGalleryChange();
     return NextResponse.json({ photos: await getPortfolioGalleryPhotos() });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

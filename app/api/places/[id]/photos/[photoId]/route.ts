@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { deletePhoto } from '@/lib/data';
 import { isAuthenticated } from '@/lib/auth';
+import { revalidateAfterPlacesChange } from '@/lib/revalidatePublic';
 
 export async function DELETE(
   request: Request,
@@ -16,5 +17,6 @@ export async function DELETE(
   if (!success) {
     return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
   }
+  revalidateAfterPlacesChange();
   return NextResponse.json({ success: true });
 }

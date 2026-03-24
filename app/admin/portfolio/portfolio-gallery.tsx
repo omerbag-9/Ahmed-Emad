@@ -23,7 +23,7 @@ export default function PortfolioGalleryAdmin() {
 
   const fetchPhotos = async () => {
     try {
-      const res = await fetch('/api/portfolio');
+      const res = await fetch('/api/portfolio', { cache: 'no-store' });
       const data = await res.json();
       const list = (data.photos || []) as Photo[];
       setPhotos([...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));

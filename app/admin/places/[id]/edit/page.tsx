@@ -40,7 +40,7 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`/api/places/${id}`)
+    fetch(`/api/places/${id}`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((placeData) => {
         setPlace(placeData);

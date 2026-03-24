@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { isAuthenticated } from '@/lib/auth';
 import { patchAboutContent } from '@/lib/about';
 import { isCloudinaryConfigured, uploadWebpBuffer } from '@/lib/cloudinary';
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
         imageSrc: up.secureUrl,
         imageCloudinaryPublicId: up.publicId,
       });
+      revalidatePath('/about');
       return NextResponse.json({
         about: updated,
         width: meta.width,
@@ -69,6 +71,7 @@ export async function POST(request: Request) {
 
     const publicPath = `/uploads/about/${fileName}`;
     const updated = await patchAboutContent({ imageSrc: publicPath });
+    revalidatePath('/about');
 
     return NextResponse.json({
       about: updated,

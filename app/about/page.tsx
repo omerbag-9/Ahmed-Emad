@@ -3,6 +3,9 @@ import Image from 'next/image';
 import { getAboutContent } from '@/lib/about';
 import styles from './about.module.css';
 
+/** CMS content — must not use the static full-route cache or production stays stale after admin edits */
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const a = await getAboutContent();
   const desc = a.lead.trim().slice(0, 160) || 'About the practice.';

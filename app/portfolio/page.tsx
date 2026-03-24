@@ -19,7 +19,7 @@ export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/portfolio')
+    fetch('/api/portfolio', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         setAllPhotos(data.photos || []);
