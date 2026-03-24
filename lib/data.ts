@@ -46,7 +46,8 @@ export async function createPlace(
   name: string,
   category: string,
   description: string,
-  location = ''
+  location = '',
+  brief = ''
 ): Promise<Place> {
   const data = await readData();
   const place: Place = {
@@ -55,6 +56,7 @@ export async function createPlace(
     slug: slugify(name),
     category,
     location: location.trim() || undefined,
+    brief,
     description,
     coverImage: '',
     photos: [],
@@ -68,7 +70,7 @@ export async function createPlace(
 
 export async function updatePlace(
   id: string,
-  updates: Partial<Pick<Place, 'name' | 'category' | 'description' | 'location'>>
+  updates: Partial<Pick<Place, 'name' | 'category' | 'brief' | 'description' | 'location'>>
 ): Promise<Place | null> {
   const data = await readData();
   const index = data.places.findIndex(p => p.id === id);
@@ -79,6 +81,7 @@ export async function updatePlace(
     data.places[index].slug = slugify(updates.name);
   }
   if (updates.category) data.places[index].category = updates.category;
+  if (updates.brief !== undefined) data.places[index].brief = updates.brief;
   if (updates.description !== undefined) data.places[index].description = updates.description;
   if (updates.location !== undefined) {
     const trimmed = updates.location.trim();

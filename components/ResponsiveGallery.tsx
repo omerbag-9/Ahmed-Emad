@@ -5,7 +5,10 @@ import { createPortal } from 'react-dom';
 import { useMobileSidebarOpen } from '@/components/MobileSidebarContext';
 import MasonryGrid from './MasonryGrid';
 import PhotoSlider from './PhotoSlider';
+import ProjectGalleryMeta, { type GalleryProjectMeta } from './ProjectGalleryMeta';
 import styles from './ResponsiveGallery.module.css';
+
+export type { GalleryProjectMeta };
 
 const STORAGE_KEY = 'ae-portfolio-view';
 const MOBILE_MQ = '(max-width: 900px)';
@@ -23,6 +26,8 @@ interface Photo {
 
 interface ResponsiveGalleryProps {
   photos: Photo[];
+  /** When set, shows title (mobile), brief, and description above grid & slider */
+  projectMeta?: GalleryProjectMeta;
 }
 
 function readStoredMode(): ViewMode | null {
@@ -87,7 +92,7 @@ function IconSliderMode() {
   );
 }
 
-export default function ResponsiveGallery({ photos }: ResponsiveGalleryProps) {
+export default function ResponsiveGallery({ photos, projectMeta }: ResponsiveGalleryProps) {
   const mobileNavOpen = useMobileSidebarOpen();
   const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<ViewMode>('grid');
@@ -119,10 +124,20 @@ export default function ResponsiveGallery({ photos }: ResponsiveGalleryProps) {
     setModePersist(mode === 'grid' ? 'slider' : 'grid');
   }, [mode, setModePersist]);
 
+  const galleryBody =
+    mode === 'grid' ? (
+      <MasonryGrid photos={photos} />
+    ) : (
+      <PhotoSlider photos={photos} />
+    );
+
   if (!hydrated) {
     return (
-      <div className={styles.wrap}>
-        <MasonryGrid photos={photos} />
+      <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
+        {projectMeta ? <ProjectGalleryMeta meta={projectMeta} /> : null}
+        <div className={styles.galleryStage}>
+          <MasonryGrid photos={photos} />
+        </div>
       </div>
     );
   }
@@ -143,11 +158,8 @@ export default function ResponsiveGallery({ photos }: ResponsiveGalleryProps) {
   return (
     <>
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
-        {mode === 'grid' ? (
-          <MasonryGrid photos={photos} />
-        ) : (
-          <PhotoSlider photos={photos} />
-        )}
+        {projectMeta ? <ProjectGalleryMeta meta={projectMeta} /> : null}
+        <div className={styles.galleryStage}>{galleryBody}</div>
       </div>
 
       {typeof document !== 'undefined' ? createPortal(floatButton, document.body) : null}

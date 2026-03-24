@@ -1,0 +1,125 @@
+.root {
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  padding: 0 0 1.25rem;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  animation: metaIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.root::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  bottom: 0.85rem;
+  width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+}
+
+@keyframes metaIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobileTitle {
+  display: none;
+  padding-left: 0.85rem;
+  margin-bottom: 0;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 1.65rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.count {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+}
+
+.copy {
+  padding-left: 0.85rem;
+  max-width: 42rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.briefSlot {
+  width: 100%;
+  min-width: 0;
+}
+
+.description {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* Desktop: brief sits under the page title; keep description here only */
+@media (min-width: 901px) {
+  .noDesktopCopy {
+    display: none;
+  }
+
+  .briefSlot {
+    display: none;
+  }
+
+  /* Brief-only on mobile is hidden here; desktop shows brief via page header control */
+  .copy:not(:has(.description)) {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .noDesktopCopy {
+    display: block;
+  }
+
+  .root {
+    padding: 0.35rem 1rem 1rem;
+    margin-bottom: 0;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .mobileTitle {
+    display: block;
+    margin-bottom: 0.85rem;
+  }
+
+  .root.noDesktopCopy .mobileTitle {
+    margin-bottom: 0;
+  }
+
+  .copy {
+    padding-left: 0.85rem;
+    max-width: none;
+  }
+
+  .description {
+    font-size: 0.82rem;
+  }
+}

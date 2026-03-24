@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, category, description, location } = await request.json();
+    const { name, category, brief, description, location } = await request.json();
 
     if (!name || !category) {
       return NextResponse.json({ error: 'Name and category are required' }, { status: 400 });
@@ -31,7 +31,8 @@ export async function POST(request: Request) {
       name,
       category,
       description || '',
-      typeof location === 'string' ? location : ''
+      typeof location === 'string' ? location : '',
+      typeof brief === 'string' ? brief : ''
     );
     return NextResponse.json(place, { status: 201 });
   } catch (error) {

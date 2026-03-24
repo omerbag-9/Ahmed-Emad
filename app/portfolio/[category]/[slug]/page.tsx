@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import ResponsiveGallery from '@/components/ResponsiveGallery';
+import ProjectBriefReveal from '@/components/ProjectBriefReveal';
 import PageLoader from '@/components/PageLoader';
 import portfolioStyles from '../../portfolio.module.css';
 import styles from '../category.module.css';
@@ -20,6 +21,7 @@ interface Place {
   name: string;
   slug: string;
   category: string;
+  brief?: string;
   description: string;
   photos: Photo[];
 }
@@ -74,10 +76,20 @@ export default function PlacePage({ params }: { params: Promise<{ category: stri
       <div className={styles.header}>
         <h1 className={styles.title}>{place.name}</h1>
         <p className={styles.count}>{place.photos.length} photos</p>
-        {place.description && <p className={styles.description}>{place.description}</p>}
+        {place.brief?.trim() ? (
+          <ProjectBriefReveal brief={place.brief.trim()} variant="header" />
+        ) : null}
       </div>
 
-      <ResponsiveGallery photos={place.photos} />
+      <ResponsiveGallery
+        photos={place.photos}
+        projectMeta={{
+          title: place.name,
+          photoCount: place.photos.length,
+          brief: place.brief,
+          description: place.description,
+        }}
+      />
     </div>
   );
 }

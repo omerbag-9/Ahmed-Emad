@@ -9,6 +9,7 @@ export default function NewPlace() {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('');
+  const [brief, setBrief] = useState('');
   const [description, setDescription] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -65,7 +66,7 @@ export default function NewPlace() {
       const placeRes = await fetch('/api/places', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, category, description, location }),
+        body: JSON.stringify({ name, category, brief, description, location }),
       });
 
       if (!placeRes.ok) throw new Error('Failed to create place');
@@ -151,13 +152,31 @@ export default function NewPlace() {
             </div>
 
             <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Brief</label>
+              <input
+                type="text"
+                value={brief}
+                onChange={(e) => setBrief(e.target.value)}
+                className={styles.formInput}
+                placeholder="One short line — shown above the gallery (grid & slider)"
+              />
+              <p className={styles.formHint}>
+                Optional. A single editorial line; keep it short for a clean layout next to the photos.
+              </p>
+            </div>
+
+            <div className={styles.formGroup}>
               <label className={styles.formLabel}>Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className={styles.formTextarea}
-                placeholder="Brief description of the project..."
+                placeholder="Longer project story, context, or credits..."
+                rows={5}
               />
+              <p className={styles.formHint}>
+                Shown under the brief in grid and slider on the public project page.
+              </p>
             </div>
 
             <div className={styles.formGroup}>

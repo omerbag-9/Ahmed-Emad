@@ -18,6 +18,8 @@ interface Place {
   slug: string;
   category: string;
   location?: string;
+  brief?: string;
+  description?: string;
   coverImage: string;
   photos: Photo[];
   createdAt: string;
@@ -170,7 +172,11 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <div className={styles.placesGrid}>
-            {places.map((place, index) => (
+            {places.map((place, index) => {
+              const blurbLine = place.brief?.trim() || place.description?.trim();
+              const blurbShort =
+                blurbLine && blurbLine.length > 130 ? `${blurbLine.slice(0, 127)}…` : blurbLine;
+              return (
               <div key={place.id} className={styles.placeCard}>
                 {place.coverImage ? (
                   <Image
@@ -192,6 +198,11 @@ export default function AdminDashboard() {
                     {' · '}
                     {place.photos.length} photos · Order {index + 1}
                   </div>
+                  {blurbLine ? (
+                    <p className={styles.placeCardBlurb} title={blurbLine}>
+                      {blurbShort}
+                    </p>
+                  ) : null}
                   <div className={styles.placeOrderRow}>
                     <button
                       type="button"
@@ -223,7 +234,8 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

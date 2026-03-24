@@ -110,10 +110,20 @@ const defaultPlaces = (): DataStore => ({
   categories: ['Cultural', 'Residential', 'Hospitality', 'Restaurants', 'Workspaces'],
 });
 
+function normalizePlacesStore(data: DataStore): DataStore {
+  return {
+    ...data,
+    places: data.places.map((p) => ({
+      ...p,
+      brief: typeof p.brief === 'string' ? p.brief : '',
+    })),
+  };
+}
+
 function readPlacesFromDisk(): DataStore {
   try {
     const raw = fs.readFileSync(PLACES_PATH, 'utf-8');
-    return JSON.parse(raw) as DataStore;
+    return normalizePlacesStore(JSON.parse(raw) as DataStore);
   } catch {
     return defaultPlaces();
   }
@@ -125,7 +135,7 @@ export async function loadPlacesStore(): Promise<DataStore> {
 
   const data = await r.get<DataStore>(K_PLACES);
   if (data && typeof data === 'object' && Array.isArray((data as DataStore).places)) {
-    return data as DataStore;
+    return normalizePlacesStore(data as DataStore);
   }
 
   const seeded = readPlacesFromDisk();

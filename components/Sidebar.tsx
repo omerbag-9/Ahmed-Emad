@@ -108,11 +108,13 @@ export default function Sidebar({
           </span>
         </button>
         <Link href="/" className={styles.mobileHeaderBrand} onClick={() => setMobileOpen(false)}>
-          <span className={styles.mobileHeaderBrandName}>
-            <span className={styles.brandFirst}>AHMED</span>{' '}
-            <span className={styles.brandBold}>EMAD</span>
+          <span className={styles.brandLockup}>
+            <span className={styles.mobileHeaderBrandName}>
+              <span className={styles.brandFirst}>AHMED</span>
+              <span className={styles.brandBold}>EMAD</span>
+            </span>
+            <p className={`${styles.brandTag} ${styles.brandTagMobile}`}>PHOTOGRAPHS</p>
           </span>
-          <span className={styles.mobileHeaderBrandTag}>P H O T O G R A P H S</span>
         </Link>
       </div>
 
@@ -120,11 +122,13 @@ export default function Sidebar({
         <div className={styles.sidebarInner}>
           <div className={styles.sidebarTop}>
             <Link href="/" className={styles.brand}>
-              <h2 className={styles.brandName}>
-                <span className={styles.brandFirst}>AHMED</span>{' '}
-                <span className={styles.brandBold}>EMAD</span>
-              </h2>
-              <p className={styles.brandTag}>P H O T O G R A P H S</p>
+              <span className={styles.brandLockup}>
+                <h2 className={styles.brandName}>
+                  <span className={styles.brandFirst}>AHMED</span>
+                  <span className={styles.brandBold}>EMAD</span>
+                </h2>
+                <p className={styles.brandTag}>PHOTOGRAPHS</p>
+              </span>
             </Link>
 
             <nav className={styles.nav}>

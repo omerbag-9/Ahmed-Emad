@@ -17,6 +17,8 @@ export interface Place {
   category: string;
   /** City, branch, or venue — shown in the sidebar next to the project name */
   location?: string;
+  /** Short editorial line — shown above the gallery (grid & slider) */
+  brief: string;
   description: string;
   coverImage: string;
   photos: Photo[];

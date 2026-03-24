@@ -22,10 +22,12 @@
   }
 }
 
-.wrapWithToolbar > :first-child {
+.galleryStage {
   flex: 1;
   min-height: 0;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Portaled FAB — mobile/tablet: bottom-left; desktop: bottom-right */

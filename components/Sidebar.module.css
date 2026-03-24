@@ -64,29 +64,60 @@
   opacity: 0.8;
 }
 
-.brandName {
-  font-family: var(--font-ahmed-emad), Georgia, serif;
+/* Tag `em` sizes are relative to lockup font-size (desktop 1.3rem, mobile 1.05rem) */
+.brandLockup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
   font-size: 1.3rem;
+}
+
+.brandName {
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0;
+  box-sizing: border-box;
+  font-family: var(--font-ahmed-emad), Georgia, serif;
+  font-size: 1em;
   font-weight: 300;
-  letter-spacing: 0.2em;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .brandFirst {
   font-weight: 300;
+  letter-spacing: 0.2em;
   color: var(--text-secondary);
 }
 
 .brandBold {
   font-weight: 300;
+  letter-spacing: 0.2em;
   color: var(--text-primary);
 }
 
 .brandTag {
-  font-size: 0.5rem;
-  letter-spacing: 0.5em;
+  margin: 0;
+  padding: 0;
+  margin-top: 0.35rem;
+  /* ~0.36 of name size — tune letter-spacing so tag width tracks name line */
+  font-size: 0.5em;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.8em;
+  text-transform: uppercase;
+  text-align: left;
   color: var(--text-muted);
-  margin-top: 0.25rem;
+}
+
+.brandTagMobile {
+  margin-top: 0.28rem;
+  font-size: 0.49em;
 }
 
 .nav {
@@ -366,6 +397,7 @@
 .mobileHeaderBrand {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   justify-content: center;
   min-width: 0;
   flex: 1;
@@ -378,27 +410,27 @@
   opacity: 0.88;
 }
 
-.mobileHeaderBrandName {
-  display: block;
-  font-family: var(--font-ahmed-emad), Georgia, serif;
+.mobileHeaderBrand .brandLockup {
   font-size: 1.05rem;
-  font-weight: 300;
-  letter-spacing: 0.18em;
-  line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.mobileHeaderBrandTag {
-  display: block;
-  font-size: 0.45rem;
-  letter-spacing: 0.45em;
-  color: var(--text-muted);
-  margin-top: 0.15rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.mobileHeaderBrandName {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0;
+  box-sizing: border-box;
+  font-family: var(--font-ahmed-emad), Georgia, serif;
+  font-size: 1em;
+  font-weight: 300;
+  line-height: 1;
+  min-width: 0;
+}
+
+.mobileHeaderBrandName .brandFirst,
+.mobileHeaderBrandName .brandBold {
+  letter-spacing: 0.18em;
 }
 
 .mobileToggle {
