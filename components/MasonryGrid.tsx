@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import PhotoShareButton from '@/components/PhotoShareButton';
+import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
 import styles from './MasonryGrid.module.css';
 
 interface Photo {
@@ -70,6 +71,7 @@ export default function MasonryGrid({ photos, onOpenPhotoInSlider }: MasonryGrid
               sizes={sizesForGridCell(w, h)}
               loading={index < 12 ? 'eager' : 'lazy'}
               quality={85}
+              unoptimized={shouldUnoptimizeNextImage(photo.src)}
               onLoad={() => handleImageLoad(photo.id)}
               className={styles.imageFill}
               draggable={false}

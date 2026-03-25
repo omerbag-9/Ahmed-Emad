@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import PhotoShareButton from '@/components/PhotoShareButton';
+import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
 import styles from './PhotoSlider.module.css';
 
 interface Photo {
@@ -283,6 +284,7 @@ export default function PhotoSlider({
                   className={styles.image}
                   style={{ objectFit: 'cover' }}
                   quality={92}
+                  unoptimized={shouldUnoptimizeNextImage(photo.src)}
                   priority={i === 0}
                   draggable={false}
                   onDragStart={(e) => e.preventDefault()}

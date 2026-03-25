@@ -26,6 +26,16 @@ export async function POST(request: Request) {
   }
 
   if (!isCloudinaryConfigured()) {
+    // On Vercel, multipart uploads hit the ~4.5MB serverless body limit — direct Cloudinary is required.
+    if (process.env.VERCEL) {
+      return NextResponse.json(
+        {
+          error:
+            'Cloudinary is not configured. Large uploads must go browser → Cloudinary. Add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET to this Vercel project, then redeploy.',
+        },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({ useLegacyUpload: true as const });
   }
 

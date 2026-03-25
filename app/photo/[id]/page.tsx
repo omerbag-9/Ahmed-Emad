@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
 import styles from './photo.module.css';
 
 interface Props {
@@ -74,6 +75,7 @@ export default async function PhotoPage({ params }: Props) {
               width={portfolioPhoto.width}
               height={portfolioPhoto.height}
               quality={85}
+              unoptimized={shouldUnoptimizeNextImage(portfolioPhoto.src)}
               priority
               className={styles.image}
               draggable={false}
@@ -128,6 +130,7 @@ export default async function PhotoPage({ params }: Props) {
             width={foundPhoto.width}
             height={foundPhoto.height}
             quality={85}
+            unoptimized={shouldUnoptimizeNextImage(foundPhoto.src)}
             priority
             className={styles.image}
             draggable={false}

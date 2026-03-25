@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { getAboutContent } from '@/lib/about';
+import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
 import styles from './about.module.css';
 
 /** CMS content — must not use the static full-route cache or production stays stale after admin edits */
@@ -34,6 +35,7 @@ export default async function AboutPage() {
                   fill
                   className={styles.portrait}
                   sizes="(max-width: 900px) min(100vw, 22rem), 28vw"
+                  unoptimized={shouldUnoptimizeNextImage(a.imageSrc)}
                   priority
                   draggable={false}
                 />

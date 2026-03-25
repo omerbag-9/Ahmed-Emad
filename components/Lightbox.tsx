@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import Image from 'next/image';
+import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
 import styles from './Lightbox.module.css';
 
 interface Photo {
@@ -91,6 +92,7 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
             width={photo.width}
             height={photo.height}
             quality={90}
+            unoptimized={shouldUnoptimizeNextImage(photo.src)}
             priority
             className={styles.image}
             sizes="100vw"

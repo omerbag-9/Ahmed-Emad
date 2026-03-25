@@ -1,4 +1,11 @@
+/**
+ * Large photos: browser uploads directly to Cloudinary (signed), then `/api/upload/commit` saves metadata.
+ * Only small JSON hits Vercel — avoids the ~4.5MB serverless body limit.
+ * Requires CLOUDINARY_* env vars on the server (Vercel). Local dev without Cloudinary falls back to `/api/upload`.
+ */
 import { v4 as uuidv4 } from 'uuid';
+
+import { prepareImageFileForUpload } from '@/lib/prepareImageFileForUpload';
 
 type SignItem = {
   photoId: string;
@@ -69,12 +76,21 @@ async function requestSign(body: Record<string, unknown>): Promise<
     credentials: 'include',
     body: JSON.stringify(body),
   });
-  const json = (await res.json()) as { useLegacyUpload?: boolean; error?: string };
+  const json = (await res.json()) as {
+    useLegacyUpload?: boolean;
+    error?: string;
+    cloudName?: string;
+    apiKey?: string;
+    items?: unknown;
+  };
   if (!res.ok) {
     throw new Error(json.error || 'Upload sign failed');
   }
-  if (json.useLegacyUpload) {
+  if (json.useLegacyUpload === true) {
     return { useLegacyUpload: true };
+  }
+  if (!json.cloudName || !json.apiKey || !Array.isArray(json.items)) {
+    throw new Error('Invalid sign response from server');
   }
   return json as SignOk;
 }
@@ -83,29 +99,30 @@ export async function uploadPlacePhotosWithFallback(
   placeId: string,
   files: File[]
 ): Promise<Response> {
-  const photoIds = files.map(() => uuidv4());
+  const prepared = await Promise.all(files.map((f) => prepareImageFileForUpload(f)));
+  const photoIds = prepared.map(() => uuidv4());
   const sign = await requestSign({ context: 'place', placeId, photoIds });
 
   if (sign.useLegacyUpload) {
     const fd = new FormData();
     fd.append('placeId', placeId);
-    files.forEach((f) => fd.append('photos', f));
+    prepared.forEach((f) => fd.append('photos', f));
     return fetch('/api/upload', { method: 'POST', body: fd, credentials: 'include' });
   }
 
   const { cloudName, apiKey, timestamp, items } = sign;
   const photos = [];
-  for (let i = 0; i < files.length; i++) {
+  for (let i = 0; i < prepared.length; i++) {
     const item = items.find((it) => it.photoId === photoIds[i]);
     if (!item) throw new Error('Sign mismatch');
-    const up = await postFileToCloudinary(cloudName, apiKey, timestamp, item, files[i]);
+    const up = await postFileToCloudinary(cloudName, apiKey, timestamp, item, prepared[i]);
     photos.push({
       id: photoIds[i],
       publicId: up.publicId,
       secureUrl: up.secureUrl,
       width: up.width,
       height: up.height,
-      alt: files[i].name.replace(/\.[^.]+$/, ''),
+      alt: prepared[i].name.replace(/\.[^.]+$/, ''),
     });
   }
 
@@ -118,28 +135,29 @@ export async function uploadPlacePhotosWithFallback(
 }
 
 export async function uploadPortfolioPhotosWithFallback(files: File[]): Promise<Response> {
-  const photoIds = files.map(() => uuidv4());
+  const prepared = await Promise.all(files.map((f) => prepareImageFileForUpload(f)));
+  const photoIds = prepared.map(() => uuidv4());
   const sign = await requestSign({ context: 'portfolio', photoIds });
 
   if (sign.useLegacyUpload) {
     const fd = new FormData();
-    files.forEach((f) => fd.append('photos', f));
+    prepared.forEach((f) => fd.append('photos', f));
     return fetch('/api/portfolio/upload', { method: 'POST', body: fd, credentials: 'include' });
   }
 
   const { cloudName, apiKey, timestamp, items } = sign;
   const photos = [];
-  for (let i = 0; i < files.length; i++) {
+  for (let i = 0; i < prepared.length; i++) {
     const item = items.find((it) => it.photoId === photoIds[i]);
     if (!item) throw new Error('Sign mismatch');
-    const up = await postFileToCloudinary(cloudName, apiKey, timestamp, item, files[i]);
+    const up = await postFileToCloudinary(cloudName, apiKey, timestamp, item, prepared[i]);
     photos.push({
       id: photoIds[i],
       publicId: up.publicId,
       secureUrl: up.secureUrl,
       width: up.width,
       height: up.height,
-      alt: files[i].name.replace(/\.[^.]+$/, ''),
+      alt: prepared[i].name.replace(/\.[^.]+$/, ''),
     });
   }
 
@@ -152,19 +170,20 @@ export async function uploadPortfolioPhotosWithFallback(files: File[]): Promise<
 }
 
 export async function uploadAboutPhotoWithFallback(file: File): Promise<Response> {
+  const prepared = await prepareImageFileForUpload(file);
   const photoId = uuidv4();
   const sign = await requestSign({ context: 'about', photoIds: [photoId] });
 
   if (sign.useLegacyUpload) {
     const fd = new FormData();
-    fd.append('photo', file);
+    fd.append('photo', prepared);
     return fetch('/api/about/upload', { method: 'POST', body: fd, credentials: 'include' });
   }
 
   const { cloudName, apiKey, timestamp, items } = sign;
   const item = items[0];
   if (!item) throw new Error('Sign mismatch');
-  const up = await postFileToCloudinary(cloudName, apiKey, timestamp, item, file);
+  const up = await postFileToCloudinary(cloudName, apiKey, timestamp, item, prepared);
 
   return fetch('/api/upload/commit', {
     method: 'POST',
