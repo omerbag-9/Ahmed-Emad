@@ -78,6 +78,7 @@
   /* Pin + project name + location — breathing room from the right edge */
   .projectTopHeading {
     margin-right: max(1rem, env(safe-area-inset-right, 0px));
+    gap: 3px;
   }
 }
 
