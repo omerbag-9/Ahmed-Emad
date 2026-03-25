@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { fontAhmedEmad } from '@/lib/fonts';
 import { siteSocialLinks, siteCopyrightOwner } from '@/lib/site';
 import styles from './Sidebar.module.css';
 
@@ -197,7 +198,9 @@ export default function Sidebar({
                           style={{ animationDelay: `${idx * 0.04}s` }}
                         >
                           <span className={styles.placeLinkRow}>
-                            <span className={styles.placeLinkName}>{place.name}</span>
+                            <span className={`${fontAhmedEmad.className} ${styles.placeLinkName}`}>
+                              {place.name}
+                            </span>
                             {loc ? (
                               <span className={styles.placeLinkLocation}>{loc}</span>
                             ) : null}

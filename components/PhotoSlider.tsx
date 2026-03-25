@@ -306,7 +306,7 @@ export default function PhotoSlider({
         ) : null}
         <button
           type="button"
-          className={styles.toolBtn}
+          className={`${styles.toolBtn} ${styles.fullscreenTool}`}
           onClick={onFullscreenClick}
           aria-label={fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
         >

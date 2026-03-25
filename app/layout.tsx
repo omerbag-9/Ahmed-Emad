@@ -1,13 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Buda } from "next/font/google";
 import "./globals.css";
-
-const fontAhmedEmad = Buda({
-  weight: "300",
-  subsets: ["latin"],
-  variable: "--font-ahmed-emad",
-  display: "swap",
-});
+import { fontAhmedEmad } from "@/lib/fonts";
 
 const SITE_NAME = "Ahmed Emad Photographs";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ahmedemadphotographs.com";

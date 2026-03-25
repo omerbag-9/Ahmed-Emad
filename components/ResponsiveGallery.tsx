@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMobileSidebarOpen } from '@/components/MobileSidebarContext';
+import { fontAhmedEmad } from '@/lib/fonts';
 import MasonryGrid from './MasonryGrid';
 import PhotoSlider from './PhotoSlider';
 import styles from './ResponsiveGallery.module.css';
@@ -69,6 +70,36 @@ function IconSliderMode() {
       <circle cx="12" cy="19" r="1.15" fill="currentColor" stroke="none" />
       <circle cx="15" cy="19" r="1.15" fill="currentColor" stroke="none" />
     </svg>
+  );
+}
+
+/** Grid project header only (not sidebar): pin + title + optional location */
+function GridProjectHeading({ title, location }: { title: string; location?: string }) {
+  const loc = location?.trim();
+  return (
+    <header className={styles.projectTopBar}>
+      <h1 className={styles.projectTopHeading}>
+        <span className={styles.projectTopNameGroup}>
+          <svg
+            className={styles.projectTopPin}
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.55"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M12 21c-3-2.5-7-7.2-7-11a7 7 0 1 1 14 0c0 3.8-4 8.5-7 11z" />
+            <circle cx="12" cy="10" r="2.25" />
+          </svg>
+          <span className={`${fontAhmedEmad.className} ${styles.projectTopTitle}`}>{title}</span>
+        </span>
+        {loc ? <span className={styles.projectTopLocation}>{loc}</span> : null}
+      </h1>
+    </header>
   );
 }
 
@@ -149,14 +180,7 @@ export default function ResponsiveGallery({ photos, projectTitle, projectLocatio
     return (
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
         {projectTitle ? (
-          <header className={styles.projectTopBar}>
-            <h1 className={styles.projectTopHeading}>
-              <span className={styles.projectTopTitle}>{projectTitle}</span>
-              {projectLocation?.trim() ? (
-                <span className={styles.projectTopLocation}>{projectLocation.trim()}</span>
-              ) : null}
-            </h1>
-          </header>
+          <GridProjectHeading title={projectTitle} location={projectLocation} />
         ) : null}
         <div className={styles.galleryStage}>
           <MasonryGrid photos={photos} onOpenPhotoInSlider={openSliderAtPhoto} />
@@ -182,14 +206,7 @@ export default function ResponsiveGallery({ photos, projectTitle, projectLocatio
     <>
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
         {projectTitle && mode !== 'slider' ? (
-          <header className={styles.projectTopBar}>
-            <h1 className={styles.projectTopHeading}>
-              <span className={styles.projectTopTitle}>{projectTitle}</span>
-              {projectLocation?.trim() ? (
-                <span className={styles.projectTopLocation}>{projectLocation.trim()}</span>
-              ) : null}
-            </h1>
-          </header>
+          <GridProjectHeading title={projectTitle} location={projectLocation} />
         ) : null}
         <div className={styles.galleryStage}>{galleryBody}</div>
       </div>

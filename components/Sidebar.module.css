@@ -117,7 +117,7 @@
 
 .brandTagMobile {
   margin-top: 0.28rem;
-  font-size: 0.52em;
+  font-size: 0.515em;
 }
 
 .nav {
@@ -325,6 +325,13 @@
 
 .placeLinkName {
   display: block;
+  /* Buda: `fontAhmedEmad.className` on this span (see Sidebar.tsx) */
+  font-weight: 300;
+  letter-spacing: 0.04em;
+}
+
+.navLink.active .placeLinkName {
+  font-weight: 400;
 }
 
 .placeLinkLocation {
@@ -526,5 +533,18 @@
 
   .overlay {
     display: block;
+  }
+
+  .socialFooter {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .copyright {
+    font-size: 0.52rem;
+    letter-spacing: 0.03em;
+    white-space: normal;
+    max-width: 100%;
+    overflow-wrap: break-word;
   }
 }
