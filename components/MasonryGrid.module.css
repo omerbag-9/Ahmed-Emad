@@ -124,6 +124,13 @@
   }
 }
 
+/* Grid only: hide share on small viewports (matches ResponsiveGallery mobile breakpoint) */
+@media (max-width: 900px) {
+  .shareWrap {
+    display: none;
+  }
+}
+
 .imageFill {
   object-fit: cover;
   opacity: 0;

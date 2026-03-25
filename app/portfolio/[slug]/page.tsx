@@ -21,6 +21,7 @@ interface Place {
   slug: string;
   brief?: string;
   description: string;
+  location?: string;
   photos: Photo[];
 }
 
@@ -71,7 +72,11 @@ export default function PlacePage({ params }: { params: Promise<{ slug: string }
 
   return (
     <div className={portfolioStyles.pageRoot}>
-      <ResponsiveGallery photos={place.photos} projectTitle={place.name} />
+      <ResponsiveGallery
+        photos={place.photos}
+        projectTitle={place.name}
+        projectLocation={place.location}
+      />
     </div>
   );
 }

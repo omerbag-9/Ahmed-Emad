@@ -25,6 +25,8 @@ interface ResponsiveGalleryProps {
   photos: Photo[];
   /** Project name only (grid mode); hidden in horizontal gallery / slider */
   projectTitle?: string;
+  /** Shown beside the title in grid mode when set (e.g. city / region) */
+  projectLocation?: string;
 }
 
 function readStoredMode(): ViewMode | null {
@@ -70,7 +72,7 @@ function IconSliderMode() {
   );
 }
 
-export default function ResponsiveGallery({ photos, projectTitle }: ResponsiveGalleryProps) {
+export default function ResponsiveGallery({ photos, projectTitle, projectLocation }: ResponsiveGalleryProps) {
   const mobileNavOpen = useMobileSidebarOpen();
   const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<ViewMode>('grid');
@@ -148,7 +150,12 @@ export default function ResponsiveGallery({ photos, projectTitle }: ResponsiveGa
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
         {projectTitle ? (
           <header className={styles.projectTopBar}>
-            <h1 className={styles.projectTopTitle}>{projectTitle}</h1>
+            <h1 className={styles.projectTopHeading}>
+              <span className={styles.projectTopTitle}>{projectTitle}</span>
+              {projectLocation?.trim() ? (
+                <span className={styles.projectTopLocation}>{projectLocation.trim()}</span>
+              ) : null}
+            </h1>
           </header>
         ) : null}
         <div className={styles.galleryStage}>
@@ -176,7 +183,12 @@ export default function ResponsiveGallery({ photos, projectTitle }: ResponsiveGa
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
         {projectTitle && mode !== 'slider' ? (
           <header className={styles.projectTopBar}>
-            <h1 className={styles.projectTopTitle}>{projectTitle}</h1>
+            <h1 className={styles.projectTopHeading}>
+              <span className={styles.projectTopTitle}>{projectTitle}</span>
+              {projectLocation?.trim() ? (
+                <span className={styles.projectTopLocation}>{projectLocation.trim()}</span>
+              ) : null}
+            </h1>
           </header>
         ) : null}
         <div className={styles.galleryStage}>{galleryBody}</div>
