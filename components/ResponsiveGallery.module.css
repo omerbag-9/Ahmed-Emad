@@ -16,7 +16,7 @@
   justify-content: flex-end;
 }
 
-/* One heading: pin + Buda title + location on a single row (grid only; sidebar unchanged) */
+/* One heading: pin + title + location — title font matches sidebar .navLink place names (Inter) */
 .projectTopHeading {
   margin: 0;
   display: flex;
@@ -48,10 +48,10 @@
 }
 
 .projectTopTitle {
-  /* font family: `fontAhmedEmad.className` on the span */
+  font-family: var(--font-sans);
   font-size: clamp(1.02rem, 1.9vw, 1.35rem);
-  font-weight: 300;
-  letter-spacing: 0.07em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   color: var(--text-primary);
   min-width: 0;
   white-space: nowrap;
@@ -73,6 +73,11 @@
   .projectTopBar {
     padding-right: 0;
     padding-left: 0;
+  }
+
+  /* Pin + project name + location — breathing room from the right edge */
+  .projectTopHeading {
+    margin-right: max(1rem, env(safe-area-inset-right, 0px));
   }
 }
 

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMobileSidebarOpen } from '@/components/MobileSidebarContext';
-import { fontAhmedEmad } from '@/lib/fonts';
 import MasonryGrid from './MasonryGrid';
 import PhotoSlider from './PhotoSlider';
 import styles from './ResponsiveGallery.module.css';
@@ -95,7 +94,7 @@ function GridProjectHeading({ title, location }: { title: string; location?: str
             <path d="M12 21c-3-2.5-7-7.2-7-11a7 7 0 1 1 14 0c0 3.8-4 8.5-7 11z" />
             <circle cx="12" cy="10" r="2.25" />
           </svg>
-          <span className={`${fontAhmedEmad.className} ${styles.projectTopTitle}`}>{title}</span>
+          <span className={styles.projectTopTitle}>{title}</span>
         </span>
         {loc ? <span className={styles.projectTopLocation}>{loc}</span> : null}
       </h1>
