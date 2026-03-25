@@ -128,12 +128,27 @@
   font-size: 1.02rem;
   line-height: 1.75;
   color: var(--text-secondary);
+  text-align: justify;
+  text-align-last: left;
+  text-justify: distribute;
+  overflow-wrap: break-word;
 }
 
 .para {
   font-size: 0.95rem;
   line-height: 1.8;
   color: var(--text-muted);
+  text-align: justify;
+  text-align-last: left;
+  text-justify: inter-word;
+  overflow-wrap: break-word;
+}
+
+/* Closing paragraph — slightly smaller when there is more than one block */
+.body p:last-child:not(:only-child) {
+  font-size: 0.86rem;
+  line-height: 1.72;
+  color: var(--text-secondary);
 }
 
 @keyframes rise {
