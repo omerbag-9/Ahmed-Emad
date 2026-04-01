@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import PhotoShareButton from '@/components/PhotoShareButton';
 import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
 import { useHorizontalPointerDragScroll } from '@/lib/useHorizontalPointerDragScroll';
@@ -124,8 +124,25 @@ function photosOrderKey(list: { id: string }[]): string {
   return s;
 }
 
-/** Beyond this, use lazy + edge priority so opening the strip does not request every full image at once. */
+/** Beyond this on desktop, use lazy + edge priority so opening the strip does not request every image at once. */
 const STRIP_EAGER_LOADING_MAX = 96;
+
+/** Match ResponsiveGallery — on narrow screens, load the whole strip eagerly so swipe-back does not re-lazy images. */
+const STRIP_MOBILE_MQ = '(max-width: 900px)';
+
+function subscribeStripMobileMq(onChange: () => void) {
+  const mq = window.matchMedia(STRIP_MOBILE_MQ);
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+}
+
+function getStripMobileSnapshot() {
+  return window.matchMedia(STRIP_MOBILE_MQ).matches;
+}
+
+function getStripMobileServerSnapshot() {
+  return false;
+}
 
 /** Above this, native <img> + scroll layout cache (Next/Image × N hurts scroll jank on big portfolios). */
 const HEAVY_STRIP_THRESHOLD = 22;
@@ -167,6 +184,11 @@ export default function PhotoSlider({
   const [fullscreen, setFullscreen] = useState(false);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
+  const isNarrowStrip = useSyncExternalStore(
+    subscribeStripMobileMq,
+    getStripMobileSnapshot,
+    getStripMobileServerSnapshot
+  );
 
   const orderKey = useMemo(() => photosOrderKey(photos), [photos]);
 
@@ -330,7 +352,8 @@ export default function PhotoSlider({
 
   const showNav = photos.length > 1;
   const heavyStrip = photos.length > HEAVY_STRIP_THRESHOLD;
-  const eagerStripLoading = photos.length <= STRIP_EAGER_LOADING_MAX;
+  /** Mobile: eager-load every slide so decoded bitmaps stay after horizontal swipe; desktop: cap eager set when huge. */
+  const eagerStripLoading = isNarrowStrip || photos.length <= STRIP_EAGER_LOADING_MAX;
   const edgePriorityCount = eagerStripLoading ? 6 : 14;
 
   return (
@@ -364,10 +387,24 @@ export default function PhotoSlider({
                     height={h}
                     className={styles.imageNative}
                     loading={
-                      i < 8 || i >= photos.length - 8 ? 'eager' : 'lazy'
+                      eagerStripLoading
+                        ? 'eager'
+                        : i < 8 || i >= photos.length - 8
+                          ? 'eager'
+                          : 'lazy'
                     }
                     decoding="async"
-                    fetchPriority={i === 0 ? 'high' : i > photos.length - 4 ? 'low' : 'auto'}
+                    fetchPriority={
+                      eagerStripLoading
+                        ? i < 4
+                          ? 'high'
+                          : 'auto'
+                        : i === 0
+                          ? 'high'
+                          : i > photos.length - 4
+                            ? 'low'
+                            : 'auto'
+                    }
                     draggable={false}
                     onDragStart={(e) => e.preventDefault()}
                   />

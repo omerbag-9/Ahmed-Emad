@@ -49,11 +49,9 @@
   contain: layout style;
 }
 
-/* Long strips: skip painting far-off slides; approximate width for aspect-ratio cells */
-.stripHeavy .stripItem {
-  content-visibility: auto;
-  contain-intrinsic-size: 300px 85%;
-}
+/* No content-visibility on long strips: portfolio has many slides vs. per-project galleries;
+   toggling c-v while mouse-drag scrolling caused desktop jank. Mobile “reload” is handled via
+   eager strip loading in PhotoSlider, not c-v. */
 
 .cellFill {
   position: absolute;

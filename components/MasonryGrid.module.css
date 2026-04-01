@@ -179,38 +179,17 @@
   height: 0;
 }
 
-/* Large galleries: skip paint/layout for far-off columns (avoid promoting the whole wide strip) */
+/* Large galleries: light containment only — content-visibility made tiles look soft while scrolling */
 .masonryHeavy .item {
   contain: layout paint;
-  content-visibility: auto;
-  /* ~single column × half row; landscape items override width hint */
-  contain-intrinsic-size: 168px 240px;
-}
-
-.masonryHeavy .itemLandscape {
-  contain-intrinsic-size: 336px 240px;
-}
-
-.imageFillNative {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
-  -webkit-user-drag: none;
-  user-select: none;
 }
 
 /* No animated hover / opacity transitions while scrolling dozens of cells */
-.masonryHeavy .imageFill,
-.masonryHeavy .imageFillNative {
+.masonryHeavy .imageFill {
   opacity: 1;
   transition: none;
 }
 
-.masonryHeavy .imageWrapper:hover .imageFill,
-.masonryHeavy .imageWrapper:hover .imageFillNative {
+.masonryHeavy .imageWrapper:hover .imageFill {
   transform: none;
 }

@@ -72,7 +72,7 @@ export default function ContactForm() {
           <p className={styles.eyebrow}>Get in touch</p>
           <h1 className={styles.title}>Contact</h1>
           <p className={styles.tagline}>
-            Commissions, collaborations, print requests — send a note and we
+            Commissions, collaborations, print requests, send a note and we
             will reply as soon as we can.
           </p>
           <ul className={styles.contactList}>

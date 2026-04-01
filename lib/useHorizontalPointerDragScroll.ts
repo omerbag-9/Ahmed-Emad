@@ -69,6 +69,24 @@ export function useHorizontalPointerDragScroll(
     let dragged = false;
     /** Largest max(|dx|,|dy|) seen during the current document-tracked gesture */
     let maxPointerSlop = 0;
+    /** Coalesce scrollLeft writes to one per animation frame (reduces layout+scroll event storms while dragging). */
+    let scrollRaf: number | null = null;
+    let pendingScrollLeft: number | null = null;
+
+    const flushPendingScrollLeft = () => {
+      scrollRaf = null;
+      if (pendingScrollLeft !== null) {
+        el.scrollLeft = pendingScrollLeft;
+        pendingScrollLeft = null;
+      }
+    };
+
+    const cancelPendingScrollRaf = () => {
+      if (scrollRaf !== null) {
+        cancelAnimationFrame(scrollRaf);
+        scrollRaf = null;
+      }
+    };
 
     const ignoreInteractive = (target: Element): boolean => {
       if (!allowPointerDownOnInteractive) {
@@ -114,6 +132,8 @@ export function useHorizontalPointerDragScroll(
 
     const finishDocumentGesture = (suppressClick: boolean) => {
       removeDocListeners();
+      cancelPendingScrollRaf();
+      flushPendingScrollLeft();
       active = false;
       activeId = null;
       dragged = false;
@@ -141,7 +161,10 @@ export function useHorizontalPointerDragScroll(
         dragged = true;
         el.classList.add('ae-pan-scrolling');
       }
-      el.scrollLeft = scrollLeftStart - dx;
+      pendingScrollLeft = scrollLeftStart - dx;
+      if (scrollRaf === null) {
+        scrollRaf = requestAnimationFrame(flushPendingScrollLeft);
+      }
       e.preventDefault();
     };
 
@@ -160,6 +183,9 @@ export function useHorizontalPointerDragScroll(
       if (e.button !== 0) return;
       if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
       if (shouldIgnoreDown(e.target)) return;
+
+      cancelPendingScrollRaf();
+      pendingScrollLeft = null;
 
       active = true;
       dragged = false;
@@ -194,7 +220,10 @@ export function useHorizontalPointerDragScroll(
       } else {
         dragged = Math.abs(dx) > 0;
       }
-      el.scrollLeft = scrollLeftStart - dx;
+      pendingScrollLeft = scrollLeftStart - dx;
+      if (scrollRaf === null) {
+        scrollRaf = requestAnimationFrame(flushPendingScrollLeft);
+      }
       if (dragged) e.preventDefault();
     };
 
@@ -202,6 +231,8 @@ export function useHorizontalPointerDragScroll(
       if (!active || e.pointerId !== activeId) return;
       const id = activeId;
       const didDrag = dragged;
+      cancelPendingScrollRaf();
+      flushPendingScrollLeft();
       active = false;
       activeId = null;
       dragged = false;
@@ -225,6 +256,8 @@ export function useHorizontalPointerDragScroll(
     return () => {
       mq.removeEventListener('change', onMq);
       removeDocListeners();
+      cancelPendingScrollRaf();
+      pendingScrollLeft = null;
       el.classList.remove('ae-pan-scrolling');
       el.removeEventListener('pointerdown', onPointerDown);
       if (!useDocumentTracking) {
