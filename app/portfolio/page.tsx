@@ -1,43 +1,7 @@
-'use client';
+import { getPortfolioGalleryPhotos } from '@/lib/portfolio';
+import PortfolioGalleryClient from './PortfolioGalleryClient';
 
-import { useState, useEffect } from 'react';
-import ResponsiveGallery from '@/components/ResponsiveGallery';
-import PageLoader from '@/components/PageLoader';
-import portfolioStyles from './portfolio.module.css';
-
-interface Photo {
-  id: string;
-  src: string;
-  thumbnail: string;
-  alt: string;
-  width: number;
-  height: number;
-}
-
-export default function PortfolioPage() {
-  const [allPhotos, setAllPhotos] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/portfolio', { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        setAllPhotos(data.photos || []);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className={portfolioStyles.pageRoot}>
-        <PageLoader caption="Gallery" />
-      </div>
-    );
-  }
-
-  return (
-    <div className={portfolioStyles.pageRoot}>
-      <ResponsiveGallery photos={allPhotos} />
-    </div>
-  );
+export default async function PortfolioPage() {
+  const photos = await getPortfolioGalleryPhotos();
+  return <PortfolioGalleryClient photos={photos} />;
 }

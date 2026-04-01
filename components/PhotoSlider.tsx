@@ -1,9 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PhotoShareButton from '@/components/PhotoShareButton';
 import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
+import { useHorizontalPointerDragScroll } from '@/lib/useHorizontalPointerDragScroll';
 import styles from './PhotoSlider.module.css';
 
 interface Photo {
@@ -78,32 +79,6 @@ function sizesForStripPhoto(naturalW: number, naturalH: number): string {
   return `${estCssWidth}px`;
 }
 
-/**
- * Which photo is "current" for prev/next: viewport center in strip coordinates
- * (`scrollLeft + clientWidth/2`). Prefer the item that contains that X; in gaps, nearest midline.
- */
-function indexFromScrollPosition(strip: HTMLDivElement, items: HTMLElement[]): number {
-  if (items.length === 0) return 0;
-  const center = strip.scrollLeft + strip.clientWidth / 2;
-  for (let i = 0; i < items.length; i += 1) {
-    const el = items[i]!;
-    const left = el.offsetLeft;
-    const right = left + el.offsetWidth;
-    if (center >= left && center <= right) return i;
-  }
-  let best = 0;
-  let bestDist = Infinity;
-  items.forEach((el, i) => {
-    const mid = el.offsetLeft + el.offsetWidth / 2;
-    const d = Math.abs(mid - center);
-    if (d < bestDist) {
-      bestDist = d;
-      best = i;
-    }
-  });
-  return best;
-}
-
 /** Scroll the strip so `item` is centered (smooth for arrow controls). */
 function scrollItemCenterIntoStrip(strip: HTMLDivElement, item: HTMLElement) {
   const sr = strip.getBoundingClientRect();
@@ -139,6 +114,44 @@ async function toggleFullscreen(el: HTMLElement | null): Promise<void> {
   }
 }
 
+/** Stable order identity so parent re-renders with a new array reference do not reset scroll. */
+function photosOrderKey(list: { id: string }[]): string {
+  let s = '';
+  for (let i = 0; i < list.length; i += 1) {
+    if (i > 0) s += '\0';
+    s += list[i]!.id;
+  }
+  return s;
+}
+
+/** Beyond this, use lazy + edge priority so opening the strip does not request every full image at once. */
+const STRIP_EAGER_LOADING_MAX = 96;
+
+/** Above this, native <img> + scroll layout cache (Next/Image × N hurts scroll jank on big portfolios). */
+const HEAVY_STRIP_THRESHOLD = 22;
+
+type StripSegment = { L: number; R: number };
+
+function indexFromScrollCached(cx: number, segs: StripSegment[]): number {
+  if (segs.length === 0) return 0;
+  for (let i = 0; i < segs.length; i += 1) {
+    const s = segs[i]!;
+    if (cx >= s.L && cx <= s.R) return i;
+  }
+  let best = 0;
+  let bestD = Infinity;
+  for (let i = 0; i < segs.length; i += 1) {
+    const s = segs[i]!;
+    const mid = (s.L + s.R) / 2;
+    const d = Math.abs(cx - mid);
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
 export default function PhotoSlider({
   photos,
   onSwitchToGrid,
@@ -147,31 +160,76 @@ export default function PhotoSlider({
   const wrapRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const itemById = useRef(new Map<string, HTMLDivElement>());
+  const edgesRef = useRef({ canPrev: false, canNext: false });
+  const scrollEdgesRafRef = useRef<number | null>(null);
+  /** Snapshot of each strip cell’s horizontal span in strip coordinates — avoids O(n) layout reads every scroll. */
+  const stripLayoutRef = useRef<StripSegment[]>([]);
   const [fullscreen, setFullscreen] = useState(false);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
+
+  const orderKey = useMemo(() => photosOrderKey(photos), [photos]);
 
   const orderedStripItems = useCallback((): HTMLElement[] => {
     return photos.map((p) => itemById.current.get(p.id)).filter((el): el is HTMLDivElement => el != null);
   }, [photos]);
 
+  const rebuildStripLayout = useCallback(() => {
+    const items = orderedStripItems();
+    if (items.length === 0) {
+      stripLayoutRef.current = [];
+      return;
+    }
+    stripLayoutRef.current = items.map((el) => {
+      const L = el.offsetLeft;
+      return { L, R: L + el.offsetWidth };
+    });
+  }, [orderedStripItems]);
+
   const updateScrollEdges = useCallback(() => {
     const strip = stripRef.current;
     if (!strip || photos.length < 2) {
-      setCanPrev(false);
-      setCanNext(false);
+      if (edgesRef.current.canPrev || edgesRef.current.canNext) {
+        edgesRef.current = { canPrev: false, canNext: false };
+        setCanPrev(false);
+        setCanNext(false);
+      }
       return;
     }
     const items = orderedStripItems();
     if (items.length === 0) {
-      setCanPrev(false);
-      setCanNext(false);
+      if (edgesRef.current.canPrev || edgesRef.current.canNext) {
+        edgesRef.current = { canPrev: false, canNext: false };
+        setCanPrev(false);
+        setCanNext(false);
+      }
       return;
     }
-    const idx = indexFromScrollPosition(strip, items);
-    setCanPrev(idx > 0);
-    setCanNext(idx < items.length - 1);
-  }, [photos, orderedStripItems]);
+    /* Avoid rebuilding with a partial ref map during the first paint pass */
+    if (items.length !== photos.length) {
+      return;
+    }
+    if (stripLayoutRef.current.length !== items.length) {
+      rebuildStripLayout();
+    }
+    const cx = strip.scrollLeft + strip.clientWidth / 2;
+    const idx = indexFromScrollCached(cx, stripLayoutRef.current);
+    const nextPrev = idx > 0;
+    const nextNext = idx < items.length - 1;
+    if (edgesRef.current.canPrev !== nextPrev || edgesRef.current.canNext !== nextNext) {
+      edgesRef.current = { canPrev: nextPrev, canNext: nextNext };
+      setCanPrev(nextPrev);
+      setCanNext(nextNext);
+    }
+  }, [photos, orderedStripItems, rebuildStripLayout]);
+
+  const scheduleScrollEdgesUpdate = useCallback(() => {
+    if (scrollEdgesRafRef.current != null) return;
+    scrollEdgesRafRef.current = requestAnimationFrame(() => {
+      scrollEdgesRafRef.current = null;
+      updateScrollEdges();
+    });
+  }, [updateScrollEdges]);
 
   useEffect(() => {
     const el = stripRef.current;
@@ -182,12 +240,14 @@ export default function PhotoSlider({
         const item = itemById.current.get(initialFocusPhotoId);
         if (item) {
           scrollItemCenterIntoStripInstant(el, item);
+          rebuildStripLayout();
           updateScrollEdges();
           return true;
         }
         return false;
       }
       el.scrollLeft = 0;
+      rebuildStripLayout();
       updateScrollEdges();
       return true;
     };
@@ -199,21 +259,32 @@ export default function PhotoSlider({
       });
       return () => cancelAnimationFrame(id);
     }
-  }, [photos, initialFocusPhotoId, updateScrollEdges]);
+  }, [orderKey, initialFocusPhotoId, rebuildStripLayout, updateScrollEdges]);
 
   useEffect(() => {
     const el = stripRef.current;
     if (!el) return;
-    const raf = requestAnimationFrame(() => updateScrollEdges());
-    el.addEventListener('scroll', updateScrollEdges, { passive: true });
-    const ro = new ResizeObserver(updateScrollEdges);
+    const raf = requestAnimationFrame(() => {
+      rebuildStripLayout();
+      updateScrollEdges();
+    });
+    const onResize = () => {
+      rebuildStripLayout();
+      scheduleScrollEdgesUpdate();
+    };
+    el.addEventListener('scroll', scheduleScrollEdgesUpdate, { passive: true });
+    const ro = new ResizeObserver(onResize);
     ro.observe(el);
     return () => {
       cancelAnimationFrame(raf);
-      el.removeEventListener('scroll', updateScrollEdges);
+      if (scrollEdgesRafRef.current != null) {
+        cancelAnimationFrame(scrollEdgesRafRef.current);
+        scrollEdgesRafRef.current = null;
+      }
+      el.removeEventListener('scroll', scheduleScrollEdgesUpdate);
       ro.disconnect();
     };
-  }, [photos, updateScrollEdges]);
+  }, [orderKey, rebuildStripLayout, updateScrollEdges, scheduleScrollEdgesUpdate]);
 
   useEffect(() => {
     const onFs = () => setFullscreen(!!document.fullscreenElement);
@@ -226,20 +297,26 @@ export default function PhotoSlider({
     if (!strip || photos.length < 2) return;
     const items = orderedStripItems();
     if (items.length === 0) return;
-    const idx = indexFromScrollPosition(strip, items);
+    rebuildStripLayout();
+    const cx = strip.scrollLeft + strip.clientWidth / 2;
+    const idx = indexFromScrollCached(cx, stripLayoutRef.current);
     const prevIdx = Math.max(0, idx - 1);
     scrollItemCenterIntoStrip(strip, items[prevIdx]!);
-  }, [photos, orderedStripItems]);
+  }, [photos, orderedStripItems, rebuildStripLayout]);
 
   const goNext = useCallback(() => {
     const strip = stripRef.current;
     if (!strip || photos.length < 2) return;
     const items = orderedStripItems();
     if (items.length === 0) return;
-    const idx = indexFromScrollPosition(strip, items);
+    rebuildStripLayout();
+    const cx = strip.scrollLeft + strip.clientWidth / 2;
+    const idx = indexFromScrollCached(cx, stripLayoutRef.current);
     const nextIdx = Math.min(items.length - 1, idx + 1);
     scrollItemCenterIntoStrip(strip, items[nextIdx]!);
-  }, [photos, orderedStripItems]);
+  }, [photos, orderedStripItems, rebuildStripLayout]);
+
+  useHorizontalPointerDragScroll(stripRef);
 
   const onFullscreenClick = () => toggleFullscreen(wrapRef.current);
 
@@ -252,12 +329,15 @@ export default function PhotoSlider({
   }
 
   const showNav = photos.length > 1;
+  const heavyStrip = photos.length > HEAVY_STRIP_THRESHOLD;
+  const eagerStripLoading = photos.length <= STRIP_EAGER_LOADING_MAX;
+  const edgePriorityCount = eagerStripLoading ? 6 : 14;
 
   return (
     <div ref={wrapRef} className={styles.wrap}>
       <div
         ref={stripRef}
-        className={styles.strip}
+        className={`${styles.strip} ${heavyStrip ? styles.stripHeavy : ''}`}
         role="region"
         aria-label={`Photo gallery, ${photos.length} images. Scroll horizontally.`}
       >
@@ -276,20 +356,43 @@ export default function PhotoSlider({
               onContextMenu={(e) => e.preventDefault()}
             >
               <div className={styles.cellFill}>
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  fill
-                  sizes={sizesForStripPhoto(w, h)}
-                  className={styles.image}
-                  style={{ objectFit: 'cover' }}
-                  quality={92}
-                  unoptimized={shouldUnoptimizeNextImage(photo.src)}
-                  priority={i === 0}
-                  draggable={false}
-                  onDragStart={(e) => e.preventDefault()}
-                />
-                <div className={styles.shareWrap}>
+                {heavyStrip ? (
+                  <img
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={w}
+                    height={h}
+                    className={styles.imageNative}
+                    loading={
+                      i < 8 || i >= photos.length - 8 ? 'eager' : 'lazy'
+                    }
+                    decoding="async"
+                    fetchPriority={i === 0 ? 'high' : i > photos.length - 4 ? 'low' : 'auto'}
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+                ) : (
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    fill
+                    sizes={sizesForStripPhoto(w, h)}
+                    className={styles.image}
+                    style={{ objectFit: 'cover' }}
+                    quality={92}
+                    unoptimized={shouldUnoptimizeNextImage(photo.src)}
+                    loading={eagerStripLoading ? 'eager' : 'lazy'}
+                    priority={
+                      i === 0 ||
+                      (!eagerStripLoading &&
+                        (i < edgePriorityCount || i >= photos.length - edgePriorityCount))
+                    }
+                    decoding="async"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+                )}
+                <div className={styles.shareWrap} data-ae-no-pan-scroll>
                   <PhotoShareButton photoId={photo.id} />
                 </div>
               </div>

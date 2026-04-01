@@ -144,6 +144,8 @@ export default function ResponsiveGallery({ photos, projectTitle, projectLocatio
 
   const toggleMode = useCallback(() => {
     if (mode === 'grid') {
+      /* FAB → slider: always start at strip start; avoids stale focus from a prior open */
+      setSliderFocusPhotoId(null);
       setModePersist('slider');
     } else {
       setSliderFocusPhotoId(null);
