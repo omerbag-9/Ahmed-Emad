@@ -27,6 +27,11 @@ interface ResponsiveGalleryProps {
   projectTitle?: string;
   /** Shown beside the title in grid mode when set (e.g. city / region) */
   projectLocation?: string;
+  /**
+   * Main `/portfolio`: keep project-style gallery stage height without showing a title bar.
+   * Renders an invisible heading-sized block (grid mode only).
+   */
+  reserveProjectHeadingSpace?: boolean;
 }
 
 function readStoredMode(): ViewMode | null {
@@ -102,7 +107,12 @@ function GridProjectHeading({ title, location }: { title: string; location?: str
   );
 }
 
-export default function ResponsiveGallery({ photos, projectTitle, projectLocation }: ResponsiveGalleryProps) {
+export default function ResponsiveGallery({
+  photos,
+  projectTitle,
+  projectLocation,
+  reserveProjectHeadingSpace = false,
+}: ResponsiveGalleryProps) {
   const mobileNavOpen = useMobileSidebarOpen();
   const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<ViewMode>('grid');
@@ -166,6 +176,10 @@ export default function ResponsiveGallery({ photos, projectTitle, projectLocatio
     setModePersist('grid');
   }, [setModePersist]);
 
+  const showProjectHeading = Boolean(projectTitle) && mode !== 'slider';
+  const showHeadingReserve =
+    reserveProjectHeadingSpace && !projectTitle && mode !== 'slider';
+
   const galleryBody =
     mode === 'grid' ? (
       <MasonryGrid photos={photos} onOpenPhotoInSlider={openSliderAtPhoto} />
@@ -182,6 +196,12 @@ export default function ResponsiveGallery({ photos, projectTitle, projectLocatio
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
         {projectTitle ? (
           <GridProjectHeading title={projectTitle} location={projectLocation} />
+        ) : null}
+        {reserveProjectHeadingSpace && !projectTitle ? (
+          <div className={styles.headingReserve} aria-hidden="true">
+            {/* Placeholder text sizes the bar like a one-line project title (no location). */}
+            <GridProjectHeading title="." />
+          </div>
         ) : null}
         <div className={styles.galleryStage}>
           <MasonryGrid photos={photos} onOpenPhotoInSlider={openSliderAtPhoto} />
@@ -206,8 +226,13 @@ export default function ResponsiveGallery({ photos, projectTitle, projectLocatio
   return (
     <>
       <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
-        {projectTitle && mode !== 'slider' ? (
-          <GridProjectHeading title={projectTitle} location={projectLocation} />
+        {showProjectHeading ? (
+          <GridProjectHeading title={projectTitle!} location={projectLocation} />
+        ) : null}
+        {showHeadingReserve ? (
+          <div className={styles.headingReserve} aria-hidden="true">
+            <GridProjectHeading title="." />
+          </div>
         ) : null}
         <div className={styles.galleryStage}>{galleryBody}</div>
       </div>

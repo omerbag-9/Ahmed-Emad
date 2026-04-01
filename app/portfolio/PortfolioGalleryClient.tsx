@@ -7,7 +7,7 @@ import portfolioStyles from './portfolio.module.css';
 export default function PortfolioGalleryClient({ photos }: { photos: Photo[] }) {
   return (
     <div className={portfolioStyles.pageRoot}>
-      <ResponsiveGallery photos={photos} />
+      <ResponsiveGallery photos={photos} reserveProjectHeadingSpace />
     </div>
   );
 }

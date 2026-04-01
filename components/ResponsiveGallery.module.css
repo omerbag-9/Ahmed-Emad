@@ -3,6 +3,16 @@
   min-width: 0;
 }
 
+/*
+ * Portfolio index: no visible title, but same vertical slot as project pages so `.galleryStage`
+ * / masonry `cqh` match (shared image `sizes` + scroll feel).
+ */
+.headingReserve {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
 /* Project page: title + location above grid, right-aligned */
 .projectTopBar {
   flex-shrink: 0;

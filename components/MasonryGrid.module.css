@@ -77,20 +77,6 @@
   grid-column: span 2;
 }
 
-.item.loaded .imageFill {
-  opacity: 1;
-}
-
-/* Large galleries: skip stagger + per-load opacity to avoid hundreds of re-renders while scrolling */
-.itemInstant {
-  opacity: 1;
-  animation: none;
-}
-
-.itemInstant .imageFill {
-  opacity: 1;
-}
-
 .imageWrapper {
   position: relative;
   overflow: hidden;
@@ -138,9 +124,7 @@
   }
 
   .item.loaded:hover .shareWrap,
-  .item.loaded:focus-within .shareWrap,
-  .itemInstant:hover .shareWrap,
-  .itemInstant:focus-within .shareWrap {
+  .item.loaded:focus-within .shareWrap {
     opacity: 1;
     pointer-events: auto;
   }
@@ -155,12 +139,13 @@
 
 .imageFill {
   object-fit: cover;
-  opacity: 0;
-  transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  /* No opacity hide-until-load: full-res decode + fade made “after load” look extra noisy */
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Avoid hover scale — resampling reads as extra grain on fine detail */
 .imageWrapper:hover .imageFill {
-  transform: scale(1.03);
+  transform: none;
 }
 
 .empty {
@@ -179,17 +164,3 @@
   height: 0;
 }
 
-/* Large galleries: light containment only — content-visibility made tiles look soft while scrolling */
-.masonryHeavy .item {
-  contain: layout paint;
-}
-
-/* No animated hover / opacity transitions while scrolling dozens of cells */
-.masonryHeavy .imageFill {
-  opacity: 1;
-  transition: none;
-}
-
-.masonryHeavy .imageWrapper:hover .imageFill {
-  transform: none;
-}

@@ -1,10 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PhotoShareButton from '@/components/PhotoShareButton';
+import {
+  HEAVY_STRIP_THRESHOLD,
+  STRIP_EAGER_LOADING_MAX,
+  stripSlideSizes,
+} from '@/lib/galleryConstants';
 import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
 import { useHorizontalPointerDragScroll } from '@/lib/useHorizontalPointerDragScroll';
+import { useNarrowGalleryViewport } from '@/lib/useNarrowGalleryViewport';
 import styles from './PhotoSlider.module.css';
 
 interface Photo {
@@ -67,18 +73,6 @@ function IconCollapse() {
   );
 }
 
-/**
- * Strip cells use full gallery height; column width ≈ height × (w/h). A flat `vw`-based
- * sizes hint understates landscape columns (often wider than the viewport), so Next/Image
- * serves a file too small and it looks soft/pixelated. This uses a stable px upper bound
- * from intrinsic aspect ratio only (no window), so SSR and client match.
- */
-function sizesForStripPhoto(naturalW: number, naturalH: number): string {
-  const ar = naturalW / Math.max(naturalH, 1);
-  const estCssWidth = Math.min(3840, Math.ceil(1150 * ar));
-  return `${estCssWidth}px`;
-}
-
 /** Scroll the strip so `item` is centered (smooth for arrow controls). */
 function scrollItemCenterIntoStrip(strip: HTMLDivElement, item: HTMLElement) {
   const sr = strip.getBoundingClientRect();
@@ -124,29 +118,6 @@ function photosOrderKey(list: { id: string }[]): string {
   return s;
 }
 
-/** Beyond this on desktop, use lazy + edge priority so opening the strip does not request every image at once. */
-const STRIP_EAGER_LOADING_MAX = 96;
-
-/** Match ResponsiveGallery — on narrow screens, load the whole strip eagerly so swipe-back does not re-lazy images. */
-const STRIP_MOBILE_MQ = '(max-width: 900px)';
-
-function subscribeStripMobileMq(onChange: () => void) {
-  const mq = window.matchMedia(STRIP_MOBILE_MQ);
-  mq.addEventListener('change', onChange);
-  return () => mq.removeEventListener('change', onChange);
-}
-
-function getStripMobileSnapshot() {
-  return window.matchMedia(STRIP_MOBILE_MQ).matches;
-}
-
-function getStripMobileServerSnapshot() {
-  return false;
-}
-
-/** Above this, native <img> + scroll layout cache (Next/Image × N hurts scroll jank on big portfolios). */
-const HEAVY_STRIP_THRESHOLD = 22;
-
 type StripSegment = { L: number; R: number };
 
 function indexFromScrollCached(cx: number, segs: StripSegment[]): number {
@@ -184,11 +155,7 @@ export default function PhotoSlider({
   const [fullscreen, setFullscreen] = useState(false);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
-  const isNarrowStrip = useSyncExternalStore(
-    subscribeStripMobileMq,
-    getStripMobileSnapshot,
-    getStripMobileServerSnapshot
-  );
+  const isNarrowStrip = useNarrowGalleryViewport();
 
   const orderKey = useMemo(() => photosOrderKey(photos), [photos]);
 
@@ -396,7 +363,7 @@ export default function PhotoSlider({
                     decoding="async"
                     fetchPriority={
                       eagerStripLoading
-                        ? i < 4
+                        ? i < 6
                           ? 'high'
                           : 'auto'
                         : i === 0
@@ -413,7 +380,7 @@ export default function PhotoSlider({
                     src={photo.src}
                     alt={photo.alt}
                     fill
-                    sizes={sizesForStripPhoto(w, h)}
+                    sizes={stripSlideSizes(w, h)}
                     className={styles.image}
                     style={{ objectFit: 'cover' }}
                     quality={92}
@@ -421,9 +388,11 @@ export default function PhotoSlider({
                     loading={eagerStripLoading ? 'eager' : 'lazy'}
                     priority={
                       i === 0 ||
+                      (eagerStripLoading && i < 10) ||
                       (!eagerStripLoading &&
                         (i < edgePriorityCount || i >= photos.length - edgePriorityCount))
                     }
+                    placeholder={eagerStripLoading ? 'empty' : undefined}
                     decoding="async"
                     draggable={false}
                     onDragStart={(e) => e.preventDefault()}
