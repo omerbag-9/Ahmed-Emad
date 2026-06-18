@@ -7,6 +7,38 @@ import Image from 'next/image';
 import styles from '../../../admin.module.css';
 import { acceptImageFile } from '@/lib/acceptImageFile';
 import { uploadPlacePhotosWithFallback } from '@/lib/adminCloudinaryUpload';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function SortablePhotoItem({ id, children, className }: { id: string; children: React.ReactNode; className?: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 2 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style} className={className} {...attributes} {...listeners}>
+      {children}
+    </div>
+  );
+}
 
 interface Photo {
   id: string;
@@ -40,6 +72,17 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const saveLockRef = useRef(false);
   const router = useRouter();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     fetch(`/api/places/${id}`, { cache: 'no-store' })
@@ -157,6 +200,36 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
     }
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      if (!place) return;
+      const sorted = [...place.photos].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const oldIndex = sorted.findIndex((p) => p.id === active.id);
+      const newIndex = sorted.findIndex((p) => p.id === over.id);
+
+      const next = arrayMove(sorted, oldIndex, newIndex);
+      const orderedPhotoIds = next.map((p) => p.id);
+
+      // Optimistically update to avoid snap back
+      setPlace({ ...place, photos: next.map((p, i) => ({ ...p, order: i })) });
+
+      try {
+        const res = await fetch(`/api/places/${id}/photos/order`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderedPhotoIds }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setPlace(updated);
+        }
+      } catch (error) {
+        console.error('Failed to reorder photos via drag:', error);
+      }
+    }
+  };
+
   const sortedPhotos =
     place ? [...place.photos].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) : [];
 
@@ -244,54 +317,66 @@ export default function EditPlace({ params }: { params: Promise<{ id: string }> 
                   Existing Photos ({place.photos.length})
                 </label>
                 <p className={styles.formHint}>
-                  Priority 1 shows first on this project&apos;s page. Main /portfolio uses a separate gallery in admin.
+                  Priority 1 shows first on this project&apos;s page. Main /portfolio uses a separate gallery in admin. You can drag and drop to reorder.
                 </p>
-                <div className={styles.photosGrid}>
-                  {sortedPhotos.map((photo, index) => (
-                    <div key={photo.id} className={styles.photoItem}>
-                      <div className={styles.photoItemHeader}>
-                        <span className={styles.photoPriorityBadge}>#{index + 1}</span>
-                        <div className={styles.photoOrderBtns}>
-                          <button
-                            type="button"
-                            className={styles.photoOrderBtn}
-                            onClick={() => movePhoto(index, -1)}
-                            disabled={index === 0}
-                            aria-label="Higher priority"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.photoOrderBtn}
-                            onClick={() => movePhoto(index, 1)}
-                            disabled={index === sortedPhotos.length - 1}
-                            aria-label="Lower priority"
-                          >
-                            ↓
-                          </button>
-                        </div>
-                      </div>
-                      <Image
-                        src={photo.thumbnail}
-                        alt={photo.alt}
-                        width={150}
-                        height={150}
-                        className={styles.photoItemImg}
-                        style={{ objectFit: 'cover' }}
-                      />
-                      <div className={styles.photoItemOverlay}>
-                        <button
-                          type="button"
-                          className={styles.photoDeleteBtn}
-                          onClick={() => handleDeletePhoto(photo.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
+                <DndContext 
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext 
+                    items={sortedPhotos.map(p => p.id)}
+                    strategy={rectSortingStrategy}
+                  >
+                    <div className={styles.photosGrid}>
+                      {sortedPhotos.map((photo, index) => (
+                        <SortablePhotoItem key={photo.id} id={photo.id} className={styles.photoItem}>
+                          <div className={styles.photoItemHeader}>
+                            <span className={styles.photoPriorityBadge}>#{index + 1}</span>
+                            <div className={styles.photoOrderBtns} onPointerDown={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                className={styles.photoOrderBtn}
+                                onClick={(e) => { e.stopPropagation(); movePhoto(index, -1); }}
+                                disabled={index === 0}
+                                aria-label="Higher priority"
+                              >
+                                ↑
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.photoOrderBtn}
+                                onClick={(e) => { e.stopPropagation(); movePhoto(index, 1); }}
+                                disabled={index === sortedPhotos.length - 1}
+                                aria-label="Lower priority"
+                              >
+                                ↓
+                              </button>
+                            </div>
+                          </div>
+                          <Image
+                            src={photo.thumbnail}
+                            alt={photo.alt}
+                            width={150}
+                            height={150}
+                            className={styles.photoItemImg}
+                            style={{ objectFit: 'cover' }}
+                          />
+                          <div className={styles.photoItemOverlay}>
+                            <button
+                              type="button"
+                              className={styles.photoDeleteBtn}
+                              onPointerDown={(e) => e.stopPropagation()}
+                              onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id); }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </SortablePhotoItem>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             )}
 

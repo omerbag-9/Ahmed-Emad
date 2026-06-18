@@ -6,7 +6,38 @@ import Image from 'next/image';
 import styles from '../admin.module.css';
 import { acceptImageFile } from '@/lib/acceptImageFile';
 import { uploadPortfolioPhotosWithFallback } from '@/lib/adminCloudinaryUpload';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
+function SortablePhotoItem({ id, children, className }: { id: string; children: React.ReactNode; className?: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 2 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style} className={className} {...attributes} {...listeners}>
+      {children}
+    </div>
+  );
+}
 interface Photo {
   id: string;
   src: string;
@@ -22,6 +53,17 @@ export default function PortfolioGalleryAdmin() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadLockRef = useRef(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchPhotos = async () => {
     try {
@@ -87,6 +129,35 @@ export default function PortfolioGalleryAdmin() {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const sorted = [...photos].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const oldIndex = sorted.findIndex((p) => p.id === active.id);
+      const newIndex = sorted.findIndex((p) => p.id === over.id);
+
+      const next = arrayMove(sorted, oldIndex, newIndex);
+      const orderedPhotoIds = next.map((p) => p.id);
+
+      // Optimistically update
+      setPhotos(next.map((p, i) => ({ ...p, order: i })));
+
+      try {
+        const res = await fetch('/api/portfolio/order', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderedPhotoIds }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setPhotos([...(data.photos || [])].sort((a: Photo, b: Photo) => (a.order ?? 0) - (b.order ?? 0)));
+        }
+      } catch (e) {
+        console.error('Failed to reorder photos via drag:', e);
+      }
     }
   };
 
@@ -169,53 +240,65 @@ export default function PortfolioGalleryAdmin() {
             ) : sortedPhotos.length === 0 ? (
               <div className={styles.emptyState}>No portfolio images yet. Upload above.</div>
             ) : (
-              <div className={styles.photosGrid}>
-                {sortedPhotos.map((photo, index) => (
-                  <div key={photo.id} className={styles.photoItem}>
-                    <div className={styles.photoItemHeader}>
-                      <span className={styles.photoPriorityBadge}>#{index + 1}</span>
-                      <div className={styles.photoOrderBtns}>
-                        <button
-                          type="button"
-                          className={styles.photoOrderBtn}
-                          onClick={() => movePhoto(index, -1)}
-                          disabled={index === 0 || uploading}
-                          aria-label="Higher priority"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.photoOrderBtn}
-                          onClick={() => movePhoto(index, 1)}
-                          disabled={index === sortedPhotos.length - 1 || uploading}
-                          aria-label="Lower priority"
-                        >
-                          ↓
-                        </button>
-                      </div>
-                    </div>
-                    <Image
-                      src={photo.thumbnail}
-                      alt={photo.alt}
-                      width={150}
-                      height={150}
-                      className={styles.photoItemImg}
-                      style={{ objectFit: 'cover' }}
-                    />
-                    <div className={styles.photoItemOverlay}>
-                      <button
-                        type="button"
-                        className={styles.photoDeleteBtn}
-                        onClick={() => handleDelete(photo.id)}
-                        disabled={uploading}
-                      >
-                        Remove
-                      </button>
-                    </div>
+              <DndContext 
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext 
+                  items={sortedPhotos.map(p => p.id)}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className={styles.photosGrid}>
+                    {sortedPhotos.map((photo, index) => (
+                      <SortablePhotoItem key={photo.id} id={photo.id} className={styles.photoItem}>
+                        <div className={styles.photoItemHeader}>
+                          <span className={styles.photoPriorityBadge}>#{index + 1}</span>
+                          <div className={styles.photoOrderBtns} onPointerDown={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              className={styles.photoOrderBtn}
+                              onClick={(e) => { e.stopPropagation(); movePhoto(index, -1); }}
+                              disabled={index === 0 || uploading}
+                              aria-label="Higher priority"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.photoOrderBtn}
+                              onClick={(e) => { e.stopPropagation(); movePhoto(index, 1); }}
+                              disabled={index === sortedPhotos.length - 1 || uploading}
+                              aria-label="Lower priority"
+                            >
+                              ↓
+                            </button>
+                          </div>
+                        </div>
+                        <Image
+                          src={photo.thumbnail}
+                          alt={photo.alt}
+                          width={150}
+                          height={150}
+                          className={styles.photoItemImg}
+                          style={{ objectFit: 'cover' }}
+                        />
+                        <div className={styles.photoItemOverlay}>
+                          <button
+                            type="button"
+                            className={styles.photoDeleteBtn}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => { e.stopPropagation(); handleDelete(photo.id); }}
+                            disabled={uploading}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </SortablePhotoItem>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </SortableContext>
+              </DndContext>
             )}
           </div>
         </div>

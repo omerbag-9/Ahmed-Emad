@@ -66,9 +66,8 @@ export default function MasonryGrid({ photos, onOpenPhotoInSlider }: MasonryGrid
         return (
           <div
             key={photo.id}
-            className={`${styles.item} ${landscape ? styles.itemLandscape : ''} ${
-              loadedImages.has(photo.id) ? styles.loaded : ''
-            }`}
+            className={`${styles.item} ${landscape ? styles.itemLandscape : ''} ${loadedImages.has(photo.id) ? styles.loaded : ''
+              }`}
             style={{ animationDelay: `${stagger}s` }}
           >
             <div

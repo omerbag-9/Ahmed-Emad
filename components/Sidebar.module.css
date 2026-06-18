@@ -285,7 +285,8 @@
   line-height: 1.5;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
 }
 
 .socialLink {
