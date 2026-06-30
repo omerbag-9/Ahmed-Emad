@@ -245,7 +245,15 @@ export function useHorizontalPointerDragScroll(
       if (didDrag && suppressNextClickAfterDrag) scheduleConsumeNextClick();
     };
 
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && e.deltaY !== 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
     el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('wheel', onWheel, { passive: false });
     if (!useDocumentTracking) {
       el.addEventListener('pointermove', onPointerMove, { passive: false });
       el.addEventListener('pointerup', end);
@@ -260,6 +268,7 @@ export function useHorizontalPointerDragScroll(
       pendingScrollLeft = null;
       el.classList.remove('ae-pan-scrolling');
       el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('wheel', onWheel);
       if (!useDocumentTracking) {
         el.removeEventListener('pointermove', onPointerMove);
         el.removeEventListener('pointerup', end);
