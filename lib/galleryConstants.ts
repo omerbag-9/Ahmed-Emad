@@ -1,39 +1,24 @@
 /**
  * Single source for grid + horizontal strip behavior.
- * Portfolio index and project pages share these values so quality, lazy windows, and scroll paths match.
+ * Portfolio index and project pages share these values so quality, loading windows, and scroll paths match.
  */
 
-export const GRID_IMAGE_SIZES_LANDSCAPE =
-  '(min-width: 1400px) 920px, (min-width: 901px) 72vw, 92vw';
+/*
+ * Grid geometry (MasonryGrid.module.css): two rows filling the gallery stage, which is never taller
+ * than the viewport. Row height ≤ 50vh; a portrait column is 3/8 of the stage height (≤ 37.5vh) and a
+ * landscape tile spans two columns (≤ 75vh + gap). These upper bounds feed `sizes`, so the browser
+ * never picks a file smaller than the tile it fills.
+ */
+export const GRID_ROW_MAX_HEIGHT_VH = 50;
+export const GRID_PORTRAIT_CELL_MAX_WIDTH_VH = 37.5;
+export const GRID_LANDSCAPE_CELL_MAX_WIDTH_VH = 76;
 
-export const GRID_IMAGE_SIZES_PORTRAIT =
-  '(min-width: 1400px) 400px, (min-width: 901px) 30vw, 42vw';
+/** Tiles fetched immediately on first paint; the rest load as they approach the visible area. */
+export const GRID_INITIAL_EAGER_COUNT = 12;
+/** First tiles get `fetchpriority="high"` (above the fold on every layout). */
+export const GRID_HIGH_PRIORITY_COUNT = 4;
 
-export const GRID_IMAGE_QUALITY_PORTRAIT = 86;
-export const GRID_IMAGE_QUALITY_LANDSCAPE = 88;
-
-/** Desktop masonry: eager-load first N tiles (same cap for portfolio and projects). */
-export const GRID_DESKTOP_EAGER_COUNT = 12;
-
-export function gridImageSizes(landscape: boolean): string {
-  return landscape ? GRID_IMAGE_SIZES_LANDSCAPE : GRID_IMAGE_SIZES_PORTRAIT;
-}
-
-/** Strip cells fill gallery height; width ≈ height × (w/h). Px hint avoids understating wide slides. */
-export const STRIP_SIZES_BASE_HEIGHT_PX = 1150;
-export const STRIP_SIZES_MAX_PX = 3840;
-
-export function stripSlideSizes(naturalW: number, naturalH: number): string {
-  const ar = naturalW / Math.max(naturalH, 1);
-  const estCssWidth = Math.min(
-    STRIP_SIZES_MAX_PX,
-    Math.ceil(STRIP_SIZES_BASE_HEIGHT_PX * ar)
-  );
-  return `${estCssWidth}px`;
-}
-
-/** Beyond this on desktop, lazy + edge priority so the strip does not fetch everything at once. */
-export const STRIP_EAGER_LOADING_MAX = 96;
-
-/** Above this: native <img> + layout cache (Next/Image × N hurts scroll on large sets). */
-export const HEAVY_STRIP_THRESHOLD = 22;
+/** Strip cells fill the strip height (≤ the viewport); width = height × aspect ratio. */
+export const STRIP_MAX_HEIGHT_VH = 100;
+/** Slides fetched immediately when the strip opens (around the focused photo when there is one). */
+export const STRIP_INITIAL_EAGER_RADIUS = 2;

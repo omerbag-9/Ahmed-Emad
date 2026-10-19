@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { cache } from 'react';
 import path from 'path';
 import { DataStore, Place, Photo } from './types';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,6 +17,12 @@ async function writeData(data: DataStore): Promise<void> {
 export async function getPlaces(): Promise<Place[]> {
   return (await readData()).places;
 }
+
+/**
+ * Read-only, deduplicated per server render: the portfolio layout (sidebar) and a project page share
+ * one store read. Never use it inside mutations, which must see fresh data after their own writes.
+ */
+export const getPlacesForRender = cache(getPlaces);
 
 export async function getPlaceById(id: string): Promise<Place | undefined> {
   return (await readData()).places.find(p => p.id === id);

@@ -49,19 +49,13 @@
   contain: layout style;
 }
 
-/* No content-visibility on long strips: portfolio has many slides vs. per-project galleries;
-   toggling c-v while mouse-drag scrolling caused desktop jank. Mobile “reload” is handled via
-   eager strip loading in PhotoSlider, not c-v. */
+/* No content-visibility on long strips: toggling c-v while mouse-drag scrolling caused desktop jank.
+   Off-screen slides are fetched ahead of the scroll by useScrollerPrefetch instead. */
 
 .cellFill {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  isolation: isolate;
-}
-
-.stripHeavy .cellFill {
-  isolation: auto;
 }
 
 .imageNative {
@@ -69,15 +63,12 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  max-width: none;
   object-fit: cover;
   display: block;
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
-}
-
-.stripHeavy .shareWrap {
-  transition: none;
 }
 
 .shareWrap {
@@ -106,11 +97,6 @@
     bottom: max(0.65rem, 2.5%);
     right: max(0.65rem, 2.5%);
   }
-}
-
-.image {
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
 .empty {

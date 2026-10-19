@@ -137,15 +137,15 @@
   }
 }
 
+/* No opacity hide-until-load and no hover scale: both read as extra grain on fine detail */
 .imageFill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
   object-fit: cover;
-  /* No opacity hide-until-load: full-res decode + fade made “after load” look extra noisy */
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Avoid hover scale — resampling reads as extra grain on fine detail */
-.imageWrapper:hover .imageFill {
-  transform: none;
+  display: block;
 }
 
 .empty {

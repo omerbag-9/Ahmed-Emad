@@ -1,65 +1,40 @@
-'use client';
-
-import { useState, useEffect, use } from 'react';
+import type { Metadata } from 'next';
 import ResponsiveGallery from '@/components/ResponsiveGallery';
-import PageLoader from '@/components/PageLoader';
+import { getPlacesForRender, sortPhotosByOrder } from '@/lib/data';
 import portfolioStyles from '../portfolio.module.css';
 import styles from '../project-page.module.css';
 
-interface Photo {
-  id: string;
-  src: string;
-  thumbnail: string;
-  alt: string;
-  width: number;
-  height: number;
+interface Props {
+  params: Promise<{ slug: string }>;
 }
 
-interface Place {
-  id: string;
-  name: string;
-  slug: string;
-  brief?: string;
-  description: string;
-  location?: string;
-  photos: Photo[];
+async function findPlace(slug: string) {
+  return (await getPlacesForRender()).find((p) => p.slug === slug);
 }
 
-export default function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
-  const [place, setPlace] = useState<Place | null>(null);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'missing'>('loading');
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const place = await findPlace(slug);
+  /* The portfolio layout's string title stops the root template here, so add the suffix (as /about does) */
+  if (!place) return { title: 'Project not found | Ahmed Emad Photographs' };
+  const where = place.location?.trim();
+  return {
+    title: `${where ? `${place.name} · ${where}` : place.name} | Ahmed Emad Photographs`,
+    description:
+      place.brief?.trim() ||
+      `Architectural photography of ${place.name}${where ? `, ${where}` : ''} by Ahmed Emad.`,
+  };
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setStatus('loading');
-    });
-    fetch('/api/places', { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        const found = (data.places || []).find((p: Place) => p.slug === slug);
-        setPlace(found || null);
-        setStatus(found ? 'ready' : 'missing');
-      })
-      .catch(() => {
-        if (!cancelled) setStatus('missing');
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [slug]);
+/**
+ * Rendered on the server with the photos in the HTML, so images start downloading on first paint
+ * instead of after a client fetch of every project.
+ */
+export default async function PlacePage({ params }: Props) {
+  const { slug } = await params;
+  const place = await findPlace(slug);
 
-  if (status === 'loading') {
-    return (
-      <div className={portfolioStyles.pageRoot}>
-        <PageLoader caption="Project" />
-      </div>
-    );
-  }
-
-  if (status === 'missing' || !place) {
+  if (!place) {
     return (
       <div className={portfolioStyles.pageRoot}>
         <div className={styles.header}>
@@ -70,13 +45,18 @@ export default function PlacePage({ params }: { params: Promise<{ slug: string }
     );
   }
 
+  const photos = sortPhotosByOrder(place.photos).map(({ id, src, thumbnail, alt, width, height }) => ({
+    id,
+    src,
+    thumbnail,
+    alt,
+    width,
+    height,
+  }));
+
   return (
     <div className={portfolioStyles.pageRoot}>
-      <ResponsiveGallery
-        photos={place.photos}
-        projectTitle={place.name}
-        projectLocation={place.location}
-      />
+      <ResponsiveGallery photos={photos} projectTitle={place.name} projectLocation={place.location} />
     </div>
   );
 }

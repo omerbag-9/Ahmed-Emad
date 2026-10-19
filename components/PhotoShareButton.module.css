@@ -7,9 +7,8 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* Solid tint, no backdrop-filter: one per photo made every scroll frame re-blur the images behind */
+  background: rgba(0, 0, 0, 0.62);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
