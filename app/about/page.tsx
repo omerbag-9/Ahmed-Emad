@@ -36,7 +36,7 @@ export default async function AboutPage() {
                   className={styles.portrait}
                   sizes="(max-width: 900px) min(100vw, 22rem), 28vw"
                   unoptimized={shouldUnoptimizeNextImage(a.imageSrc)}
-                  priority
+                  preload
                   draggable={false}
                 />
               </div>

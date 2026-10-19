@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-/* Buda (Ahmed Emad name) is loaded via next/font on <html> as --font-ahmed-emad */
+/* Fonts are self-hosted via next/font (lib/fonts.ts) on <html>: --font-ahmed-emad, --font-inter, --font-playfair */
 
 :root {
   --bg-primary: #0a0a0a;
@@ -16,8 +15,8 @@
   --border-hover: rgba(255, 255, 255, 0.15);
   --danger: #e53e3e;
   --success: #38a169;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: var(--font-playfair), 'Playfair Display', Georgia, serif;
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   /* Fixed mobile bar (burger + name) in Sidebar — keep in sync with .mobileHeader padding + 40px control */

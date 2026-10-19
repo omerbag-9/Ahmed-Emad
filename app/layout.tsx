@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { fontAhmedEmad } from "@/lib/fonts";
+import { fontAhmedEmad, fontInter, fontPlayfair } from "@/lib/fonts";
 
 const SITE_NAME = "Ahmed Emad Photographs";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ahmedemadphotographs.com";
@@ -86,7 +86,10 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={fontAhmedEmad.variable}>
+    <html
+      lang="en"
+      className={`${fontAhmedEmad.variable} ${fontInter.variable} ${fontPlayfair.variable}`}
+    >
       <head>
         <script
           type="application/ld+json"

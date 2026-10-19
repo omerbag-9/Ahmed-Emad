@@ -1,16 +1,12 @@
 'use client';
 
-import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import GalleryImage from '@/components/GalleryImage';
 import PhotoShareButton from '@/components/PhotoShareButton';
-import {
-  HEAVY_STRIP_THRESHOLD,
-  STRIP_EAGER_LOADING_MAX,
-  stripSlideSizes,
-} from '@/lib/galleryConstants';
-import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
+import { coverSizesVh } from '@/lib/cloudinaryImage';
+import { STRIP_INITIAL_EAGER_RADIUS, STRIP_MAX_HEIGHT_VH } from '@/lib/galleryConstants';
 import { useHorizontalPointerDragScroll } from '@/lib/useHorizontalPointerDragScroll';
-import { useNarrowGalleryViewport } from '@/lib/useNarrowGalleryViewport';
+import { type Observe, useScrollerPrefetch, useTileNear } from '@/lib/useScrollerPrefetch';
 import styles from './PhotoSlider.module.css';
 
 interface Photo {
@@ -140,6 +136,51 @@ function indexFromScrollCached(cx: number, segs: StripSegment[]): number {
   return best;
 }
 
+const StripTile = memo(function StripTile({
+  photo,
+  initiallyNear,
+  highPriority,
+  observe,
+  registerItem,
+}: {
+  photo: Photo;
+  initiallyNear: boolean;
+  highPriority: boolean;
+  observe: Observe;
+  registerItem: (id: string, el: HTMLDivElement | null) => void;
+}) {
+  const [nearRef, near] = useTileNear<HTMLDivElement>(observe, initiallyNear);
+  const w = Math.max(photo.width, 1);
+  const h = Math.max(photo.height, 1);
+  return (
+    <div
+      ref={(el) => {
+        nearRef.current = el;
+        registerItem(photo.id, el);
+      }}
+      className={`${styles.stripItem} noImageSave`}
+      style={{ aspectRatio: `${w} / ${h}` }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <div className={styles.cellFill}>
+        <GalleryImage
+          src={photo.src}
+          alt={photo.alt}
+          width={w}
+          height={h}
+          sizes={coverSizesVh(w, h, STRIP_MAX_HEIGHT_VH)}
+          eager={near}
+          highPriority={highPriority}
+          className={styles.imageNative}
+        />
+        <div className={styles.shareWrap} data-ae-no-pan-scroll>
+          <PhotoShareButton photoId={photo.id} />
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function PhotoSlider({
   photos,
   onSwitchToGrid,
@@ -155,7 +196,12 @@ export default function PhotoSlider({
   const [fullscreen, setFullscreen] = useState(false);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
-  const isNarrowStrip = useNarrowGalleryViewport();
+  const observe = useScrollerPrefetch(stripRef);
+
+  const registerItem = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) itemById.current.set(id, el);
+    else itemById.current.delete(id);
+  }, []);
 
   const orderKey = useMemo(() => photosOrderKey(photos), [photos]);
 
@@ -318,93 +364,29 @@ export default function PhotoSlider({
   }
 
   const showNav = photos.length > 1;
-  const heavyStrip = photos.length > HEAVY_STRIP_THRESHOLD;
-  /** Mobile: eager-load every slide so decoded bitmaps stay after horizontal swipe; desktop: cap eager set when huge. */
-  const eagerStripLoading = isNarrowStrip || photos.length <= STRIP_EAGER_LOADING_MAX;
-  const edgePriorityCount = eagerStripLoading ? 6 : 14;
+  const focusIndex = Math.max(
+    0,
+    initialFocusPhotoId ? photos.findIndex((p) => p.id === initialFocusPhotoId) : 0
+  );
 
   return (
     <div ref={wrapRef} className={styles.wrap}>
       <div
         ref={stripRef}
-        className={`${styles.strip} ${heavyStrip ? styles.stripHeavy : ''}`}
+        className={styles.strip}
         role="region"
         aria-label={`Photo gallery, ${photos.length} images. Scroll horizontally.`}
       >
-        {photos.map((photo, i) => {
-          const w = Math.max(photo.width, 1);
-          const h = Math.max(photo.height, 1);
-          return (
-            <div
-              key={photo.id}
-              ref={(el) => {
-                if (el) itemById.current.set(photo.id, el);
-                else itemById.current.delete(photo.id);
-              }}
-              className={`${styles.stripItem} noImageSave`}
-              style={{ aspectRatio: `${w} / ${h}` }}
-              onContextMenu={(e) => e.preventDefault()}
-            >
-              <div className={styles.cellFill}>
-                {heavyStrip ? (
-                  <img
-                    src={photo.src}
-                    alt={photo.alt}
-                    width={w}
-                    height={h}
-                    className={styles.imageNative}
-                    loading={
-                      eagerStripLoading
-                        ? 'eager'
-                        : i < 8 || i >= photos.length - 8
-                          ? 'eager'
-                          : 'lazy'
-                    }
-                    decoding="async"
-                    fetchPriority={
-                      eagerStripLoading
-                        ? i < 6
-                          ? 'high'
-                          : 'auto'
-                        : i === 0
-                          ? 'high'
-                          : i > photos.length - 4
-                            ? 'low'
-                            : 'auto'
-                    }
-                    draggable={false}
-                    onDragStart={(e) => e.preventDefault()}
-                  />
-                ) : (
-                  <Image
-                    src={photo.src}
-                    alt={photo.alt}
-                    fill
-                    sizes={stripSlideSizes(w, h)}
-                    className={styles.image}
-                    style={{ objectFit: 'cover' }}
-                    quality={92}
-                    unoptimized={shouldUnoptimizeNextImage(photo.src)}
-                    loading={eagerStripLoading ? 'eager' : 'lazy'}
-                    priority={
-                      i === 0 ||
-                      (eagerStripLoading && i < 10) ||
-                      (!eagerStripLoading &&
-                        (i < edgePriorityCount || i >= photos.length - edgePriorityCount))
-                    }
-                    placeholder={eagerStripLoading ? 'empty' : undefined}
-                    decoding="async"
-                    draggable={false}
-                    onDragStart={(e) => e.preventDefault()}
-                  />
-                )}
-                <div className={styles.shareWrap} data-ae-no-pan-scroll>
-                  <PhotoShareButton photoId={photo.id} />
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {photos.map((photo, i) => (
+          <StripTile
+            key={photo.id}
+            photo={photo}
+            initiallyNear={Math.abs(i - focusIndex) <= STRIP_INITIAL_EAGER_RADIUS}
+            highPriority={Math.abs(i - focusIndex) <= 1}
+            observe={observe}
+            registerItem={registerItem}
+          />
+        ))}
       </div>
 
       <footer className={styles.footerBar} aria-label="Gallery controls">

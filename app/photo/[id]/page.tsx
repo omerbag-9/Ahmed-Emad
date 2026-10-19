@@ -76,7 +76,7 @@ export default async function PhotoPage({ params }: Props) {
               height={portfolioPhoto.height}
               quality={85}
               unoptimized={shouldUnoptimizeNextImage(portfolioPhoto.src)}
-              priority
+              preload
               className={styles.image}
               draggable={false}
             />
@@ -131,7 +131,7 @@ export default async function PhotoPage({ params }: Props) {
             height={foundPhoto.height}
             quality={85}
             unoptimized={shouldUnoptimizeNextImage(foundPhoto.src)}
-            priority
+            preload
             className={styles.image}
             draggable={false}
           />

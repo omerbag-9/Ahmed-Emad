@@ -1,4 +1,4 @@
-import { getPlaces, placesWithSortedPhotos } from '@/lib/data';
+import { getPlacesForRender, placesWithSortedPhotos } from '@/lib/data';
 import PortfolioLayoutClient from './PortfolioLayoutClient';
 
 type Variant = 'gallery' | 'page';
@@ -10,7 +10,7 @@ export default async function PortfolioShell({
   children: React.ReactNode;
   variant?: Variant;
 }) {
-  const places = placesWithSortedPhotos(await getPlaces());
+  const places = placesWithSortedPhotos(await getPlacesForRender());
 
   const sidebarPlaces = places.map((p) => ({
     id: p.id,
