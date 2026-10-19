@@ -8,6 +8,7 @@ import PhotoShareButton from '@/components/PhotoShareButton';
 import { coverSizesVh } from '@/lib/cloudinaryImage';
 import { STRIP_INITIAL_EAGER_RADIUS, STRIP_MAX_HEIGHT_VH } from '@/lib/galleryConstants';
 import { useHorizontalPointerDragScroll } from '@/lib/useHorizontalPointerDragScroll';
+import { useVerticalSwipeScroll } from '@/lib/useVerticalSwipeScroll';
 import { type Observe, useScrollerPrefetch, useTileNear } from '@/lib/useScrollerPrefetch';
 import styles from './PhotoSlider.module.css';
 
@@ -319,6 +320,8 @@ export default function PhotoSlider({
   }, [photos, orderedStripItems, rebuildStripLayout]);
 
   useHorizontalPointerDragScroll(stripRef);
+  /* Phones: an up/down swipe moves the strip sideways too */
+  useVerticalSwipeScroll(stripRef);
 
   /* Arrows step through photos, Esc returns to the grid, F toggles fullscreen */
   useEffect(() => {
