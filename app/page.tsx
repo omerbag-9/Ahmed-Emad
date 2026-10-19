@@ -6,6 +6,6 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const content = await getHomeContent();
-  const slides = await resolveHomeSlides(content);
-  return <HomeHero slides={slides} lede={content.lede} />;
+  const { desktop, mobile } = await resolveHomeSlides(content);
+  return <HomeHero desktop={desktop} mobile={mobile} lede={content.lede} />;
 }

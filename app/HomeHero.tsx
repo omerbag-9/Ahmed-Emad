@@ -11,9 +11,51 @@ import type { HomeSlide } from '@/lib/home';
 import styles from './page.module.css';
 
 const INTERVAL_MS = 6500;
+/* Same query as .setDesktop / .setMobile in page.module.css */
+const PORTRAIT = '(orientation: portrait)';
 
-export default function HomeHero({ slides, lede }: { slides: HomeSlide[]; lede: string }) {
+function Slides({ slides, current, className }: { slides: HomeSlide[]; current: number; className: string }) {
+  return (
+    <div className={className}>
+      {slides.map((s, i) => (
+        <div key={s.src} className={`${styles.pic} ${i === current ? styles.picOn : ''}`} aria-hidden={i !== current}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- responsive Cloudinary srcset */}
+          <img
+            src={s.src}
+            srcSet={gallerySrcSet(s.src, s.width)}
+            /* Cover-fitted to the screen: drawn at the larger of its width and its height × ratio */
+            sizes={`max(100vw, ${Math.ceil((100 * s.width) / Math.max(s.height, 1))}vh)`}
+            alt={s.name ? `${s.name}${s.location ? `, ${s.location}` : ''}` : 'Architectural photograph by Ahmed Emad'}
+            /*
+             * Lazy: the set hidden on this screen shape (display: none) is never downloaded. Every
+             * photo of the visible set is in the viewport (stacked), so they all load right away.
+             */
+            loading="lazy"
+            fetchPriority={i === 0 ? 'high' : 'low'}
+            decoding="async"
+            draggable={false}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function HomeHero({ desktop, mobile, lede }: { desktop: HomeSlide[]; mobile: HomeSlide[]; lede: string }) {
+  const [portrait, setPortrait] = useState(false);
   const [current, setCurrent] = useState(0);
+  const slides = portrait ? mobile : desktop;
+
+  useEffect(() => {
+    const mq = matchMedia(PORTRAIT);
+    const apply = () => {
+      setPortrait(mq.matches);
+      setCurrent(0);
+    };
+    queueMicrotask(apply);
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
 
   useEffect(() => {
     if (slides.length < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -25,21 +67,8 @@ export default function HomeHero({ slides, lede }: { slides: HomeSlide[]; lede: 
 
   return (
     <main className={styles.home}>
-      {slides.map((s, i) => (
-        <div key={s.src} className={`${styles.pic} ${i === current ? styles.picOn : ''}`} aria-hidden={i !== current}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- responsive Cloudinary srcset */}
-          <img
-            src={s.src}
-            srcSet={gallerySrcSet(s.src, s.width)}
-            sizes="100vw"
-            alt={s.name ? `${s.name}${s.location ? `, ${s.location}` : ''}` : 'Architectural photograph by Ahmed Emad'}
-            /* All load up front (later ones at low priority) so a crossfade never fades to an empty frame */
-            fetchPriority={i === 0 ? 'high' : 'low'}
-            decoding="async"
-            draggable={false}
-          />
-        </div>
-      ))}
+      <Slides slides={desktop} current={portrait ? 0 : current} className={styles.setDesktop} />
+      <Slides slides={mobile} current={portrait ? current : 0} className={styles.setMobile} />
       <div className={styles.scrim} aria-hidden />
 
       <nav className={styles.nav} aria-label="Main">

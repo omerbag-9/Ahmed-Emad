@@ -19,6 +19,27 @@
   background: #000;
 }
 
+/* Two photo sets: wide ones for landscape screens, tall ones for portrait screens (phones) */
+.setDesktop,
+.setMobile {
+  position: absolute;
+  inset: 0;
+}
+
+.setMobile {
+  display: none;
+}
+
+@media (orientation: portrait) {
+  .setDesktop {
+    display: none;
+  }
+
+  .setMobile {
+    display: block;
+  }
+}
+
 /* Full-bleed photographs crossfade; the one on screen drifts slowly */
 .pic {
   position: absolute;

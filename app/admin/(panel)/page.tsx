@@ -27,7 +27,7 @@ export default async function AdminPage() {
       portfolioCount={portfolio.length}
       portfolioThumbs={portfolio.slice(0, 8).map((p) => p.thumbnail || p.src)}
       about={{ lead: about.lead.trim(), image: about.imageSrc.trim() }}
-      home={{ lede: home.lede.trim(), chosen: home.slides.length }}
+      home={{ lede: home.lede.trim(), desktop: home.slides.length, mobile: home.mobileSlides.length }}
     />
   );
 }

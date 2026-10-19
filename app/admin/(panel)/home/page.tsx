@@ -17,6 +17,7 @@ export default async function AdminHomePage() {
     id: p.id,
     thumb: p.thumbnail || p.src,
     wide: p.width > p.height,
+    tall: p.height > p.width,
   });
   const sources: PhotoSource[] = [
     ...placesWithSortedPhotos(places).map((p) => ({ id: p.id, name: p.name, photos: p.photos.map(toPhoto) })),

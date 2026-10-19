@@ -77,7 +77,7 @@ export default function AdminDashboard({
   portfolioCount: number;
   portfolioThumbs: string[];
   about: { lead: string; image: string };
-  home: { lede: string; chosen: number };
+  home: { lede: string; desktop: number; mobile: number };
 }) {
   const router = useRouter();
   const [projects, setProjects] = useState(initial);
@@ -166,7 +166,7 @@ export default function AdminDashboard({
                 Home page
               </h2>
               <p className={styles.panelNote}>
-                {home.chosen ? `${home.chosen} chosen photo${home.chosen === 1 ? '' : 's'}` : 'Photos picked automatically'}
+                Desktop {home.desktop ? `${home.desktop} chosen` : 'automatic'} · Phone {home.mobile ? `${home.mobile} chosen` : 'automatic'}
               </p>
             </div>
             <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--text-secondary)' }}>{home.lede || 'No line under the name.'}</p>

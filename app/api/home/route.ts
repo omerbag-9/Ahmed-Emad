@@ -23,7 +23,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
   const o = body as Record<string, unknown>;
-  const updated = await saveHomeContent({ lede: o.lede, slides: o.slides });
+  const updated = await saveHomeContent({ lede: o.lede, slides: o.slides, mobileSlides: o.mobileSlides });
   revalidatePath('/');
   return NextResponse.json(updated);
 }
