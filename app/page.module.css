@@ -1,177 +1,219 @@
-@keyframes fadeInUp {
+@keyframes drift {
+  to {
+    transform: scale(1.07);
+  }
+}
+
+@keyframes captionIn {
   from {
     opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translateY(8px);
   }
 }
 
-@keyframes lineReveal {
-  from {
-    width: 0;
-  }
-  to {
-    width: 60px;
-  }
-}
-
-.main {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.hero {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.home {
   position: relative;
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 560px;
   overflow: hidden;
+  background: #000;
 }
 
-.heroContent {
-  text-align: center;
-  z-index: 2;
-  animation: fadeInUp 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+/* Full-bleed photographs crossfade; the one on screen drifts slowly */
+.pic {
+  position: absolute;
+  inset: 0;
   opacity: 0;
+  transition: opacity var(--t-picture) ease;
 }
 
-.logoContainer {
-  margin-bottom: 2rem;
-}
-
-.logo {
-  font-family: var(--font-ahmed-emad), Georgia, serif;
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  font-weight: 300;
-  letter-spacing: 0.3em;
-  line-height: 1.1;
-  margin-bottom: 0.5rem;
-}
-
-.logoFirst {
-  font-weight: 300;
-  color: var(--text-secondary);
-}
-
-.logoBold {
-  font-weight: 300;
-  color: var(--text-primary);
-}
-
-.tagline {
-  font-size: clamp(0.65rem, 2vw, 0.85rem);
-  letter-spacing: 0.8em;
-  color: var(--text-muted);
-  font-weight: 400;
-  margin-top: 0.5rem;
-}
-
-.divider {
-  width: 60px;
-  height: 1px;
-  background: var(--text-muted);
-  margin: 2.5rem auto;
-  animation: lineReveal 1s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
-  width: 0;
-}
-
-.subtitle {
-  font-family: var(--font-serif);
-  font-size: clamp(1rem, 3vw, 1.3rem);
-  font-weight: 400;
-  font-style: italic;
-  color: var(--text-secondary);
-  margin-bottom: 3rem;
-}
-
-.ctaButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.9rem 2.5rem;
-  border: 1px solid var(--border-hover);
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  transition: var(--transition);
-  backdrop-filter: blur(10px);
-  background: var(--accent-glow);
-}
-
-.ctaButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--text-secondary);
-  transform: translateY(-2px);
-}
-
-.ctaButton svg {
-  transition: transform var(--transition);
-}
-
-.ctaButton:hover svg {
-  transform: translateX(4px);
-}
-
-.heroOverlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, var(--bg-primary) 70%);
-  z-index: 1;
-}
-
-.gridLines {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: space-evenly;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.gridLine {
-  width: 1px;
+.pic img {
+  width: 100%;
   height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.picOn {
+  opacity: 1;
+}
+
+.picOn img {
+  animation: drift 9s linear forwards;
+}
+
+/* Neutral scrim so the white type stays readable on any photograph */
+.scrim {
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    var(--border) 20%,
-    var(--border) 80%,
-    transparent 100%
+    180deg,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0) 26%,
+    rgba(0, 0, 0, 0) 46%,
+    rgba(0, 0, 0, 0.78) 100%
   );
-  opacity: 0.3;
 }
 
-.footer {
-  text-align: center;
-  padding: 1.5rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
+.nav {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  display: flex;
+  gap: 28px;
+  font-size: 15px;
 }
 
-.footerName {
-  font-family: var(--font-ahmed-emad), Georgia, serif;
+.nav a {
+  color: var(--text-secondary);
+  transition: color var(--t-hover) ease;
+}
+
+.nav a:hover {
+  color: var(--text-primary);
+}
+
+.body {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 32px;
+}
+
+/* The wordmark at display size */
+.name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.28em;
+  font-family: var(--font-brand);
+  font-size: clamp(48px, 9vw, 150px);
   font-weight: 300;
+  line-height: 0.9;
   letter-spacing: 0.06em;
 }
 
-@media (max-width: 768px) {
-  .logo {
-    letter-spacing: 0.15em;
+.first {
+  color: var(--text-secondary);
+}
+
+.lede {
+  margin-top: 28px;
+  max-width: 34ch;
+  font-size: 18px;
+}
+
+.cta {
+  margin-top: 28px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 22px;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    background-color var(--t-hover) ease,
+    transform 160ms var(--ease-out);
+}
+
+.button:hover {
+  background: #fff;
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button svg {
+  transition: transform var(--t-ui) var(--ease-out);
+}
+
+.button:hover svg {
+  transform: translateX(4px);
+}
+
+.caption {
+  text-align: right;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.captionText {
+  animation: captionIn 600ms var(--ease-out);
+}
+
+.captionText a {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: opacity var(--t-hover) ease;
+}
+
+.captionText a:hover {
+  opacity: 0.8;
+}
+
+.dots {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.dots button {
+  width: 28px;
+  height: 20px;
+  display: grid;
+  align-items: center;
+}
+
+.dots i {
+  display: block;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  transition: background-color var(--t-ui) ease;
+}
+
+.dots button[aria-current='true'] i {
+  background: var(--text-primary);
+}
+
+@media (max-width: 700px) {
+  .nav {
+    top: 18px;
+    right: 16px;
+    gap: 18px;
+    font-size: 14px;
   }
 
-  .tagline {
-    letter-spacing: 0.4em;
+  .body {
+    left: 16px;
+    right: 16px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 
-  .ctaButton {
-    padding: 0.75rem 2rem;
+  .lede {
+    margin-top: 18px;
+    font-size: 16px;
+  }
+
+  .caption {
+    text-align: left;
+  }
+
+  .dots {
+    justify-content: flex-start;
   }
 }

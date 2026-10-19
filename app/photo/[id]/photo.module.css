@@ -1,12 +1,16 @@
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
 }
 
 .page {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  gap: 24px;
+  padding: 24px 32px 32px;
   background: var(--bg-primary);
 }
 
@@ -14,61 +18,70 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 2rem;
-  border-bottom: 1px solid var(--border);
 }
 
 .brand {
-  font-family: var(--font-ahmed-emad), Georgia, serif;
+  display: inline-flex;
+  gap: 0.35em;
+  font-family: var(--font-brand);
   font-size: 1.1rem;
   font-weight: 300;
-  letter-spacing: 0.15em;
-  text-decoration: none;
+  letter-spacing: 0.2em;
+  transition: opacity var(--t-hover) ease;
+}
+
+.brand:hover {
+  opacity: 0.8;
 }
 
 .brandFirst {
-  font-weight: 300;
   color: var(--text-secondary);
 }
 
-.brandBold {
-  font-weight: 300;
-  color: var(--text-primary);
-}
-
-.viewProject {
-  font-size: 0.8rem;
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
   color: var(--text-secondary);
-  transition: color var(--transition);
-  text-decoration: none;
+  transition: color var(--t-hover) ease;
 }
 
-.viewProject:hover {
+.link:hover {
   color: var(--text-primary);
+}
+
+.link svg {
+  transition: transform var(--t-ui) var(--ease-out);
+}
+
+.link:hover svg {
+  transform: translateX(4px);
 }
 
 .imageSection {
   flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  animation: fadeIn 0.6s ease forwards;
+  animation: rise 700ms var(--ease-out) backwards;
 }
 
 .imageContainer {
   position: relative;
-  max-width: 95vw;
-  max-height: 80vh;
+  max-width: 100%;
   -webkit-touch-callout: none;
 }
 
 .image {
-  max-width: 95vw;
-  max-height: 80vh;
+  display: block;
+  max-width: 100%;
+  max-height: 74dvh;
   width: auto;
   height: auto;
   object-fit: contain;
+  background: var(--bg-raise);
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
@@ -92,32 +105,55 @@
 }
 
 .info {
-  text-align: center;
-  padding: 1.5rem 2rem 2rem;
-  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  animation: rise 700ms var(--ease-out) 120ms backwards;
 }
 
-.placeName {
-  font-family: var(--font-serif);
-  font-size: 1.2rem;
-  font-weight: 400;
-  color: var(--text-primary);
+.title {
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
 }
 
-.photoMeta {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-top: 0.25rem;
+.meta {
+  margin-top: 6px;
+  font-size: 16px;
+  color: var(--text-secondary);
 }
 
-@media (max-width: 768px) {
-  .header {
-    padding: 1rem;
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 16px;
+  background: var(--bg-raise);
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    background-color var(--t-hover) ease,
+    transform 160ms var(--ease-out);
+}
+
+.copy:hover {
+  background: var(--bg-hover);
+}
+
+.copy:active {
+  transform: scale(0.97);
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 16px;
   }
 
-  .imageSection {
-    padding: 1rem;
+  .image {
+    max-height: 62dvh;
   }
 }

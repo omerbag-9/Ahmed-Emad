@@ -1,11 +1,14 @@
 import PhotoShareProtect from '@/components/PhotoShareProtect';
+import Icon from '@/components/Icon';
 import { getPlaces } from '@/lib/data';
 import { getPortfolioPhotoById } from '@/lib/portfolio';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import type { Photo } from '@/lib/types';
 import { shouldUnoptimizeNextImage } from '@/lib/shouldUnoptimizeNextImage';
+import CopyLinkButton from './CopyLinkButton';
 import styles from './photo.module.css';
 
 interface Props {
@@ -14,123 +17,77 @@ interface Props {
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+type Found = { photo: Photo; title: string; meta: string; back: { href: string; label: string } };
+
+async function findPhoto(id: string): Promise<Found | null> {
   const portfolioPhoto = await getPortfolioPhotoById(id);
   if (portfolioPhoto) {
-    const title = portfolioPhoto.alt || 'Portfolio';
     return {
-      title: `${title} — Ahmed Emad Photographs`,
-      description: 'Architectural photography by Ahmed Emad',
-      openGraph: {
-        title: `${title} — Ahmed Emad Photographs`,
-        description: 'Architectural photography by Ahmed Emad',
-        images: [{ url: portfolioPhoto.src, width: portfolioPhoto.width, height: portfolioPhoto.height }],
-      },
+      photo: portfolioPhoto,
+      title: 'Portfolio',
+      meta: 'Main portfolio',
+      back: { href: '/portfolio', label: 'View the portfolio' },
     };
   }
-
-  const places = await getPlaces();
-
-  for (const place of places) {
-    const photo = place.photos.find(p => p.id === id);
+  for (const place of await getPlaces()) {
+    const photo = place.photos.find((p) => p.id === id);
     if (photo) {
       return {
-        title: `${place.name} — Ahmed Emad Photographs`,
-        description: `Architectural photography of ${place.name} by Ahmed Emad`,
-        openGraph: {
-          title: `${place.name} — Ahmed Emad Photographs`,
-          description: `Architectural photography of ${place.name}`,
-          images: [{ url: photo.src, width: photo.width, height: photo.height }],
-        },
+        photo,
+        title: place.name,
+        meta: place.location?.trim() || '',
+        back: { href: `/portfolio/${place.slug}`, label: 'View full project' },
       };
     }
   }
+  return null;
+}
 
-  return { title: 'Photo — Ahmed Emad Photographs' };
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const found = await findPhoto(id);
+  /* absolute: the root layout template would add the suffix a second time */
+  if (!found) return { title: { absolute: 'Photo — Ahmed Emad Photographs' } };
+  const { photo, title } = found;
+  return {
+    title: { absolute: `${title} — Ahmed Emad Photographs` },
+    description: `Architectural photography${title !== 'Portfolio' ? ` of ${title}` : ''} by Ahmed Emad`,
+    openGraph: {
+      title: `${title} — Ahmed Emad Photographs`,
+      description: 'Architectural photography by Ahmed Emad',
+      images: [{ url: photo.src, width: photo.width, height: photo.height }],
+    },
+  };
 }
 
 export default async function PhotoPage({ params }: Props) {
   const { id } = await params;
-  const portfolioPhoto = await getPortfolioPhotoById(id);
-
-  if (portfolioPhoto) {
-    return (
-      <main className={styles.page}>
-        <div className={styles.header}>
-          <Link href="/" className={styles.brand}>
-            <span className={styles.brandFirst}>AHMED</span>
-            <span className={styles.brandBold}>EMAD</span>
-          </Link>
-          <Link href="/portfolio" className={styles.viewProject}>
-            ← Main portfolio
-          </Link>
-        </div>
-
-        <div className={styles.imageSection}>
-          <PhotoShareProtect className={`${styles.imageContainer} noImageSave`}>
-            <Image
-              src={portfolioPhoto.src}
-              alt={portfolioPhoto.alt}
-              width={portfolioPhoto.width}
-              height={portfolioPhoto.height}
-              quality={85}
-              unoptimized={shouldUnoptimizeNextImage(portfolioPhoto.src)}
-              preload
-              className={styles.image}
-              draggable={false}
-            />
-            <div className={styles.imageProtect} aria-hidden />
-          </PhotoShareProtect>
-        </div>
-
-        <div className={styles.info}>
-          <h1 className={styles.placeName}>{portfolioPhoto.alt || 'Portfolio'}</h1>
-          <p className={styles.photoMeta}>Main portfolio</p>
-        </div>
-      </main>
-    );
-  }
-
-  const places = await getPlaces();
-
-  let foundPhoto = null;
-  let foundPlace = null;
-
-  for (const place of places) {
-    const photo = place.photos.find(p => p.id === id);
-    if (photo) {
-      foundPhoto = photo;
-      foundPlace = place;
-      break;
-    }
-  }
-
-  if (!foundPhoto || !foundPlace) {
-    notFound();
-  }
+  const found = await findPhoto(id);
+  if (!found) notFound();
+  const { photo, title, meta, back } = found;
 
   return (
     <main className={styles.page}>
       <div className={styles.header}>
-        <Link href="/" className={styles.brand}>
+        <Link href="/" className={styles.brand} aria-label="Ahmed Emad Photographs, home">
           <span className={styles.brandFirst}>AHMED</span>
-          <span className={styles.brandBold}>EMAD</span>
+          <span>EMAD</span>
         </Link>
-        <Link href={`/portfolio/${foundPlace.slug}`} className={styles.viewProject}>
-          View full project →
+        <Link href={back.href} className={styles.link}>
+          {back.label}
+          <Icon name="arrow-right" size={16} />
         </Link>
       </div>
 
       <div className={styles.imageSection}>
         <PhotoShareProtect className={`${styles.imageContainer} noImageSave`}>
           <Image
-            src={foundPhoto.src}
-            alt={foundPhoto.alt}
-            width={foundPhoto.width}
-            height={foundPhoto.height}
+            src={photo.src}
+            alt={photo.alt}
+            width={photo.width}
+            height={photo.height}
             quality={85}
-            unoptimized={shouldUnoptimizeNextImage(foundPhoto.src)}
+            unoptimized={shouldUnoptimizeNextImage(photo.src)}
             preload
             className={styles.image}
             draggable={false}
@@ -140,10 +97,11 @@ export default async function PhotoPage({ params }: Props) {
       </div>
 
       <div className={styles.info}>
-        <h1 className={styles.placeName}>{foundPlace.name}</h1>
-        {foundPlace.location?.trim() ? (
-          <p className={styles.photoMeta}>{foundPlace.location.trim()}</p>
-        ) : null}
+        <div>
+          <h1 className={styles.title}>{title}</h1>
+          {meta ? <p className={styles.meta}>{meta}</p> : null}
+        </div>
+        <CopyLinkButton />
       </div>
     </main>
   );

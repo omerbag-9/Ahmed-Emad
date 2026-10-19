@@ -1,115 +1,112 @@
 .wrap {
-  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   min-width: 0;
-}
-
-/*
- * Portfolio index: no visible title, but same vertical slot as project pages so `.galleryStage`
- * / masonry `cqh` match (shared image `sizes` + scroll feel).
- */
-.headingReserve {
-  visibility: hidden;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* Project page: title + location above grid, right-aligned */
-.projectTopBar {
-  flex-shrink: 0;
-  width: 100%;
-  min-width: 0;
-  padding: 0 0 0.45rem;
-  margin-bottom: 0.15rem;
-  box-sizing: border-box;
-  border-bottom: 1px solid var(--border);
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  width: 100%;
 }
 
-/* One heading: pin + title + location — title font matches sidebar .navLink place names (Inter) */
-.projectTopHeading {
-  margin: 0;
+.wrap:fullscreen {
+  background: var(--bg-primary);
+}
+
+.wrap:fullscreen .bar {
+  display: none;
+}
+
+/* Title bar: same in grid and strip view, holds still while the gallery changes */
+.bar {
+  flex: 0 0 64px;
   display: flex;
-  flex-wrap: nowrap;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 3px;
-  max-width: 100%;
-  min-width: 0;
-  font-size: inherit;
-  font-weight: 400;
-  line-height: 1.25;
-  text-align: right;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 20px 0 24px;
 }
 
-.projectTopNameGroup {
-  display: inline-flex;
+.title {
+  display: flex;
   align-items: baseline;
-  gap: 5px;
+  gap: 12px;
   min-width: 0;
-  flex-shrink: 1;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
-.projectTopPin {
-  flex-shrink: 0;
+.pin {
   align-self: center;
-  color: var(--text-muted);
-  opacity: 0.92;
+  flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
-.projectTopTitle {
-  font-family: var(--font-sans);
-  font-size: clamp(0.9rem, 1.55vw, 1.27rem);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  color: var(--text-primary);
-  min-width: 0;
+.name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.projectTopLocation {
-  font-family: var(--font-sans);
-  font-size: clamp(0.68rem, 1.25vw, 0.78rem);
+.location {
+  font-size: 15px;
   font-weight: 400;
-  letter-spacing: 0.06em;
   color: var(--text-muted);
-  flex-shrink: 0;
   white-space: nowrap;
 }
 
-@media (max-width: 900px) {
-  .projectTopBar {
-    padding-right: 0;
-    padding-left: 0;
-  }
-
-  /* Pin + project name + location — breathing room from the right edge */
-  .projectTopHeading {
-    margin-right: max(1rem, env(safe-area-inset-right, 0px));
-    gap: 3px;
-  }
-}
-
-.wrapWithToolbar {
-  flex: 1;
-  min-height: 0;
-  height: 100%;
-  max-height: 100%;
+.side {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  box-sizing: border-box;
+  align-items: center;
+  gap: 16px;
 }
 
-@media (min-width: 901px) {
-  .wrapWithToolbar {
-    min-height: min(88vh, 960px);
-  }
+.count {
+  font-size: 14px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-.galleryStage {
+/* Two-button view control; a filled block slides to the current view */
+.seg {
+  position: relative;
+  display: flex;
+  background: var(--bg-raise);
+}
+
+.seg button {
+  position: relative;
+  z-index: 1;
+  width: 40px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: color var(--t-hover) ease;
+}
+
+.seg button:hover,
+.seg button[aria-pressed='true'] {
+  color: var(--text-primary);
+}
+
+.segFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 36px;
+  background: var(--bg-active);
+  transition: transform var(--t-ui) var(--ease-out);
+}
+
+.seg[data-mode='slider'] .segFill {
+  transform: translateX(40px);
+}
+
+.stage {
+  position: relative;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -121,56 +118,23 @@
   container-name: gallery-stage;
 }
 
-/*
- * Portaled FAB — bottom-left of the *main column* (not under the fixed sidebar).
- * Sidebar width 248px + main horizontal padding 1.5rem (portfolio layout) on desktop.
- */
-.floatToggle {
-  display: flex;
-  position: fixed;
-  left: max(14px, env(safe-area-inset-left, 0px));
-  right: auto;
-  bottom: calc(30px + env(safe-area-inset-bottom, 0px));
-  z-index: 220;
-  width: 52px;
-  height: 52px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(12, 12, 12, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: rgba(255, 255, 255, 0.92);
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    left 0.25s ease,
-    background var(--transition),
-    color var(--transition);
-}
-
-/* Mobile drawer open: past overlay sidebar (main has no side padding on narrow viewports) */
-.floatToggleNavOpen {
-  left: calc(248px + max(14px, env(safe-area-inset-left, 0px)));
-}
-
-@media (min-width: 901px) {
-  .floatToggle {
-    left: calc(248px + 1.5rem + max(14px, env(safe-area-inset-left, 0px)));
+@media (max-width: 600px) {
+  .bar {
+    padding: 0 12px 0 16px;
   }
 
-  .floatToggleNavOpen {
-    left: calc(248px + 1.5rem + max(14px, env(safe-area-inset-left, 0px)));
+  .count,
+  .pin {
+    display: none;
   }
-}
 
-.floatToggle:active {
-  transform: scale(0.92);
-}
+  .title {
+    flex-direction: column;
+    gap: 0;
+    font-size: 17px;
+  }
 
-.floatToggle:hover {
-  background: rgba(22, 22, 22, 0.55);
-  color: #fff;
+  .location {
+    font-size: 13px;
+  }
 }

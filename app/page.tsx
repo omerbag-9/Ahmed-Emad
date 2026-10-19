@@ -1,43 +1,18 @@
-import Link from 'next/link';
-import styles from './page.module.css';
+import { getPlacesForRender, placesWithSortedPhotos } from '@/lib/data';
+import HomeHero, { type HomeSlide } from './HomeHero';
 
-export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.hero}>
-        <div className={styles.heroContent}>
-          <div className={styles.logoContainer}>
-            <h1 className={styles.logo}>
-              <span className={styles.logoFirst}>AHMED</span>
-              <span className={styles.logoBold}>EMAD</span>
-            </h1>
-            <p className={styles.tagline}>P H O T O G R A P H S</p>
-          </div>
-          <div className={styles.divider}></div>
-          <p className={styles.subtitle}>Architectural Photography</p>
-          <Link href="/portfolio" className={styles.ctaButton}>
-            <span>View Portfolio</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
+/* The slides come from the projects, which change from the admin */
+export const dynamic = 'force-dynamic';
 
-        <div className={styles.heroOverlay}></div>
-        <div className={styles.gridLines}>
-          <div className={styles.gridLine}></div>
-          <div className={styles.gridLine}></div>
-          <div className={styles.gridLine}></div>
-          <div className={styles.gridLine}></div>
-        </div>
-      </div>
+export default async function Home() {
+  const places = placesWithSortedPhotos(await getPlacesForRender());
+  /* One wide photograph per project (falls back to its first photo) */
+  const slides: HomeSlide[] = places.flatMap((p) => {
+    const photo = p.photos.find((ph) => ph.width > ph.height) ?? p.photos[0];
+    return photo
+      ? [{ slug: p.slug, name: p.name, location: p.location, src: photo.src, width: photo.width, height: photo.height }]
+      : [];
+  });
 
-      <footer className={styles.footer}>
-        <p>
-          &copy; {new Date().getFullYear()}{' '}
-          <span className={styles.footerName}>Ahmed Emad</span> Photographs
-        </p>
-      </footer>
-    </main>
-  );
+  return <HomeHero slides={slides} />;
 }
