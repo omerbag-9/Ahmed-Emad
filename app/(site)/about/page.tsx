@@ -101,7 +101,7 @@ export default async function AboutPage() {
         <Reveal step={5} className={styles.cta}>
           <Magnet strength={0.2}>
             <Link href="/contact" className={styles.button}>
-              Commission a shoot
+              Book a shoot
               <Icon name="arrow-right" size={16} />
             </Link>
           </Magnet>

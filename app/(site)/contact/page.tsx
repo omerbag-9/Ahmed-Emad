@@ -3,7 +3,7 @@ import ContactForm from './ContactForm';
 
 export const metadata: Metadata = {
   title: { absolute: 'Contact | Ahmed Emad Photographs' },
-  description: 'Get in touch for commissions, collaborations, and print inquiries.',
+  description: 'Get in touch for bookings, collaborations, and print inquiries.',
 };
 
 export default function ContactPage() {

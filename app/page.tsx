@@ -1,18 +1,11 @@
-import { getPlacesForRender, placesWithSortedPhotos } from '@/lib/data';
-import HomeHero, { type HomeSlide } from './HomeHero';
+import { getHomeContent, resolveHomeSlides } from '@/lib/home';
+import HomeHero from './HomeHero';
 
-/* The slides come from the projects, which change from the admin */
+/* The photos and the line under the name are edited in the admin */
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const places = placesWithSortedPhotos(await getPlacesForRender());
-  /* One wide photograph per project (falls back to its first photo) */
-  const slides: HomeSlide[] = places.flatMap((p) => {
-    const photo = p.photos.find((ph) => ph.width > ph.height) ?? p.photos[0];
-    return photo
-      ? [{ slug: p.slug, name: p.name, location: p.location, src: photo.src, width: photo.width, height: photo.height }]
-      : [];
-  });
-
-  return <HomeHero slides={slides} />;
+  const content = await getHomeContent();
+  const slides = await resolveHomeSlides(content);
+  return <HomeHero slides={slides} lede={content.lede} />;
 }

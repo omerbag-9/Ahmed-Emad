@@ -4,14 +4,17 @@ import fs from 'fs';
 import path from 'path';
 import type { DataStore, Photo, Place } from './types';
 import type { AboutContent } from './about';
+import type { HomeContent } from './home';
 
 const PLACES_PATH = path.join(process.cwd(), 'data', 'places.json');
 const PORTFOLIO_PATH = path.join(process.cwd(), 'data', 'portfolio.json');
 const ABOUT_PATH = path.join(process.cwd(), 'data', 'about.json');
+const HOME_PATH = path.join(process.cwd(), 'data', 'home.json');
 
 const K_PLACES = 'ae:v1:places';
 const K_PORTFOLIO = 'ae:v1:portfolio';
 const K_ABOUT = 'ae:v1:about';
+const K_HOME = 'ae:v1:home';
 
 /** Unified read/write: Upstash REST or TCP via REDIS_URL (Vercel Marketplace Redis). */
 interface StoreRedis {
@@ -254,4 +257,28 @@ export async function saveAboutStore(data: AboutContent): Promise<void> {
     return;
   }
   await r.set(K_ABOUT, data);
+}
+
+/** Home page: the line under the name and the chosen background photos (null = never saved). */
+export async function loadHomeStore(): Promise<HomeContent | null> {
+  const r = await getStoreRedis();
+  if (!r) {
+    try {
+      return JSON.parse(fs.readFileSync(HOME_PATH, 'utf-8')) as HomeContent;
+    } catch {
+      return null;
+    }
+  }
+  return (await r.get<HomeContent>(K_HOME)) ?? null;
+}
+
+export async function saveHomeStore(data: HomeContent): Promise<void> {
+  const r = await getStoreRedis();
+  if (!r) {
+    const dir = path.dirname(HOME_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(HOME_PATH, JSON.stringify(data, null, 2), 'utf-8');
+    return;
+  }
+  await r.set(K_HOME, data);
 }

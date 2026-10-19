@@ -71,11 +71,13 @@ export default function AdminDashboard({
   portfolioCount,
   portfolioThumbs,
   about,
+  home,
 }: {
   projects: Project[];
   portfolioCount: number;
   portfolioThumbs: string[];
   about: { lead: string; image: string };
+  home: { lede: string; chosen: number };
 }) {
   const router = useRouter();
   const [projects, setProjects] = useState(initial);
@@ -158,6 +160,21 @@ export default function AdminDashboard({
         </section>
 
         <div className={styles.side}>
+          <section className={styles.panel} aria-labelledby="home-title">
+            <div className={styles.panelHead}>
+              <h2 className={styles.panelTitle} id="home-title">
+                Home page
+              </h2>
+              <p className={styles.panelNote}>
+                {home.chosen ? `${home.chosen} chosen photo${home.chosen === 1 ? '' : 's'}` : 'Photos picked automatically'}
+              </p>
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--text-secondary)' }}>{home.lede || 'No line under the name.'}</p>
+            <Link className={styles.btn} href="/admin/home" style={{ marginTop: 14 }}>
+              Edit home page
+            </Link>
+          </section>
+
           <section className={styles.panel} aria-labelledby="portfolio-title">
             <div className={styles.panelHead}>
               <h2 className={styles.panelTitle} id="portfolio-title">

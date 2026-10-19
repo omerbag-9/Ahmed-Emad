@@ -7,20 +7,12 @@ import BlurText from '@/components/motion/BlurText';
 import Magnet from '@/components/motion/Magnet';
 import Reveal from '@/components/motion/Reveal';
 import { gallerySrcSet } from '@/lib/cloudinaryImage';
+import type { HomeSlide } from '@/lib/home';
 import styles from './page.module.css';
-
-export type HomeSlide = {
-  slug: string;
-  name: string;
-  location?: string;
-  src: string;
-  width: number;
-  height: number;
-};
 
 const INTERVAL_MS = 6500;
 
-export default function HomeHero({ slides }: { slides: HomeSlide[] }) {
+export default function HomeHero({ slides, lede }: { slides: HomeSlide[]; lede: string }) {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -34,13 +26,13 @@ export default function HomeHero({ slides }: { slides: HomeSlide[] }) {
   return (
     <main className={styles.home}>
       {slides.map((s, i) => (
-        <div key={s.slug} className={`${styles.pic} ${i === current ? styles.picOn : ''}`} aria-hidden={i !== current}>
+        <div key={s.src} className={`${styles.pic} ${i === current ? styles.picOn : ''}`} aria-hidden={i !== current}>
           {/* eslint-disable-next-line @next/next/no-img-element -- responsive Cloudinary srcset */}
           <img
             src={s.src}
             srcSet={gallerySrcSet(s.src, s.width)}
             sizes="100vw"
-            alt={`${s.name}${s.location ? `, ${s.location}` : ''}`}
+            alt={s.name ? `${s.name}${s.location ? `, ${s.location}` : ''}` : 'Architectural photograph by Ahmed Emad'}
             /* All load up front (later ones at low priority) so a crossfade never fades to an empty frame */
             fetchPriority={i === 0 ? 'high' : 'low'}
             decoding="async"
@@ -62,9 +54,11 @@ export default function HomeHero({ slides }: { slides: HomeSlide[] }) {
             <BlurText text="AHMED" className={styles.first} />
             <BlurText text="EMAD" start={260} />
           </h1>
-          <Reveal as="p" step={1} className={styles.lede}>
-            Architectural photography in Cairo: interiors, residences and the spaces people work in.
-          </Reveal>
+          {lede.trim() ? (
+            <Reveal as="p" step={1} className={styles.lede}>
+              {lede}
+            </Reveal>
+          ) : null}
           <Reveal step={2} className={styles.cta}>
             <Magnet strength={0.25}>
               <Link href="/portfolio" className={styles.button}>
@@ -77,17 +71,20 @@ export default function HomeHero({ slides }: { slides: HomeSlide[] }) {
 
         {slide ? (
           <Reveal step={3} className={styles.caption}>
-            <p key={slide.slug} className={styles.captionText}>
-              <Link href={`/portfolio/${slide.slug}`}>{slide.name}</Link>
-              {slide.location?.trim() ? slide.location.trim() : null}
-            </p>
+            {/* Main-portfolio photos belong to no project, so they have no caption */}
+            {slide.slug ? (
+              <p key={slide.src} className={styles.captionText}>
+                <Link href={`/portfolio/${slide.slug}`}>{slide.name}</Link>
+                {slide.location?.trim() ? slide.location.trim() : null}
+              </p>
+            ) : null}
             {slides.length > 1 ? (
               <div className={styles.dots} role="group" aria-label="Choose photograph">
                 {slides.map((s, i) => (
                   <button
-                    key={s.slug}
+                    key={s.src}
                     type="button"
-                    aria-label={s.name}
+                    aria-label={s.name || `Photograph ${i + 1}`}
                     aria-current={i === current}
                     onClick={() => setCurrent(i)}
                   >

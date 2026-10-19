@@ -50,7 +50,8 @@ export default function AdminShell({
           <span className={styles.brandKind}>Admin</span>
         </div>
         <nav className={styles.nav} aria-label="Admin sections">
-          {item('/admin', 'Overview', 'home')}
+          {item('/admin', 'Overview', 'grid')}
+          {item('/admin/home', 'Home page', 'home')}
           {item('/admin/portfolio', 'Main portfolio', 'photo', portfolioCount)}
           {item('/admin/about', 'About page', 'user')}
           <p className={styles.navGroup}>Projects</p>

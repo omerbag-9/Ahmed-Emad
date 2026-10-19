@@ -14,6 +14,7 @@ import {
   GRID_ROW_MAX_HEIGHT_VH,
 } from '@/lib/galleryConstants';
 import { useHorizontalPointerDragScroll } from '@/lib/useHorizontalPointerDragScroll';
+import { useVerticalSwipeScroll } from '@/lib/useVerticalSwipeScroll';
 import { type Observe, useScrollerPrefetch, useTileNear } from '@/lib/useScrollerPrefetch';
 import styles from './MasonryGrid.module.css';
 
@@ -114,6 +115,8 @@ export default function MasonryGrid({ photos, onOpenPhotoInSlider, nextProject }
     suppressNextClickAfterDrag: true,
     allowPointerDownOnInteractive: true,
   });
+  /* Phones: an up/down swipe moves the grid sideways too */
+  useVerticalSwipeScroll(masonryRef);
 
   if (photos.length === 0) {
     return (

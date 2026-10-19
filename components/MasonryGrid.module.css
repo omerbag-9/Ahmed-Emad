@@ -26,6 +26,8 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
+  /* The browser scrolls sideways; vertical swipes go to useVerticalSwipeScroll */
+  touch-action: pan-x;
   scrollbar-width: none;
   align-content: stretch;
   padding: 0 24px 0 0;

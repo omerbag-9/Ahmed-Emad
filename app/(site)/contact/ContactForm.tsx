@@ -110,7 +110,7 @@ export default function ContactForm() {
           <BlurText text="Contact" />
         </h1>
         <Reveal as="p" step={1} className={styles.tagline}>
-          Commissions, collaborations and print requests. Send a note and Ahmed will reply as soon as he can.
+          Bookings, collaborations and print requests. Send a note and Ahmed will reply as soon as he can.
         </Reveal>
         <Reveal as="ul" step={2} className={styles.list}>
           <li>
