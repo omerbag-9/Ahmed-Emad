@@ -1,14 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { useMobileSidebarOpen } from '@/components/MobileSidebarContext';
-import MasonryGrid from './MasonryGrid';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import Icon from '@/components/Icon';
+import BlurText from '@/components/motion/BlurText';
+import MasonryGrid, { type NextProject } from './MasonryGrid';
 import PhotoSlider from './PhotoSlider';
 import styles from './ResponsiveGallery.module.css';
 
 const STORAGE_KEY = 'ae-portfolio-view';
-const MOBILE_MQ = '(max-width: 900px)';
 
 type ViewMode = 'grid' | 'slider';
 
@@ -23,19 +23,17 @@ interface Photo {
 
 interface ResponsiveGalleryProps {
   photos: Photo[];
-  /** Project name only (grid mode); hidden in horizontal gallery / slider */
-  projectTitle?: string;
-  /** Shown beside the title in grid mode when set (e.g. city / region) */
-  projectLocation?: string;
-  /**
-   * Main `/portfolio`: keep project-style gallery stage height without showing a title bar.
-   * Renders an invisible heading-sized block (grid mode only).
-   */
-  reserveProjectHeadingSpace?: boolean;
+  /** Title in the bar: the project name, or "Portfolio" on the main gallery */
+  title: string;
+  /** Project location, shown beside the title */
+  location?: string;
+  /** Project pages show a map pin before the title */
+  isProject?: boolean;
+  /** Last grid tile: the next project to open */
+  nextProject?: NextProject;
 }
 
 function readStoredMode(): ViewMode | null {
-  if (typeof window === 'undefined') return null;
   try {
     const v = localStorage.getItem(STORAGE_KEY);
     if (v === 'grid' || v === 'slider') return v;
@@ -45,106 +43,32 @@ function readStoredMode(): ViewMode | null {
   return null;
 }
 
-/** Shown in grid mode FAB — filled rectangle (switch to horizontal gallery) */
-function IconFilledRectangle() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden>
-      <rect x="1.5" y="5.5" width="22" height="15"  fill="currentColor" />
-    </svg>
-  );
-}
-
-/** Slider mode icon */
-function IconSliderMode() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <rect x="3.25" y="7.75" width="17.5" height="8.5" rx="1.25" />
-      <path d="M4.5 12H3M21 12h-1.5" />
-      <circle cx="9" cy="19" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="19" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="15" cy="19" r="1.15" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-/** Grid project header only (not sidebar): pin + title + optional location */
-function GridProjectHeading({ title, location }: { title: string; location?: string }) {
-  const loc = location?.trim();
-  return (
-    <header className={styles.projectTopBar}>
-      <h1 className={styles.projectTopHeading}>
-        <span className={styles.projectTopNameGroup}>
-          <svg
-            className={styles.projectTopPin}
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.55"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            <path d="M12 21c-3-2.5-7-7.2-7-11a7 7 0 1 1 14 0c0 3.8-4 8.5-7 11z" />
-            <circle cx="12" cy="10" r="2.25" />
-          </svg>
-          <span className={styles.projectTopTitle}>{title}</span>
-        </span>
-        {loc ? <span className={styles.projectTopLocation}>{loc}</span> : null}
-      </h1>
-    </header>
-  );
-}
+type DocWithVT = Document & {
+  startViewTransition?: (cb: () => void | Promise<void>) => {
+    finished: Promise<void>;
+    skipTransition: () => void;
+  };
+};
 
 export default function ResponsiveGallery({
   photos,
-  projectTitle,
-  projectLocation,
-  reserveProjectHeadingSpace = false,
+  title,
+  location,
+  isProject = false,
+  nextProject,
 }: ResponsiveGalleryProps) {
-  const mobileNavOpen = useMobileSidebarOpen();
-  const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<ViewMode>('grid');
-  const [hydrated, setHydrated] = useState(false);
-  /** When opening the horizontal gallery from a grid tile, scroll to this photo */
-  const [sliderFocusPhotoId, setSliderFocusPhotoId] = useState<string | null>(null);
+  /** When opening the strip from a grid tile, centre this photo */
+  const [focusPhotoId, setFocusPhotoId] = useState<string | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const morphing = useRef(false);
 
   useEffect(() => {
-    const mq = window.matchMedia(MOBILE_MQ);
-    const apply = () => setIsMobile(mq.matches);
-    queueMicrotask(() => apply());
-    mq.addEventListener('change', apply);
-
-    queueMicrotask(() => {
-      const stored = readStoredMode();
-      if (stored) setMode(stored);
-      setHydrated(true);
-    });
-
-    return () => mq.removeEventListener('change', apply);
+    const stored = readStoredMode();
+    if (stored) queueMicrotask(() => setMode(stored));
   }, []);
 
-  useEffect(() => {
-    if (!hydrated || typeof document === 'undefined') return;
-    document.documentElement.setAttribute('data-ae-gallery', mode);
-    return () => {
-      document.documentElement.removeAttribute('data-ae-gallery');
-    };
-  }, [hydrated, mode]);
-
-  const setModePersist = useCallback((m: ViewMode) => {
-    setMode(m);
+  const persist = useCallback((m: ViewMode) => {
     try {
       localStorage.setItem(STORAGE_KEY, m);
     } catch {
@@ -152,94 +76,152 @@ export default function ResponsiveGallery({
     }
   }, []);
 
-  const toggleMode = useCallback(() => {
-    if (mode === 'grid') {
-      /* FAB → slider: always start at strip start; avoids stale focus from a prior open */
-      setSliderFocusPhotoId(null);
-      setModePersist('slider');
-    } else {
-      setSliderFocusPhotoId(null);
-      setModePersist('grid');
-    }
-  }, [mode, setModePersist]);
-
-  const openSliderAtPhoto = useCallback(
-    (photoId: string) => {
-      setSliderFocusPhotoId(photoId);
-      setModePersist('slider');
+  /** Switch views with a plain crossfade (view control, Esc) */
+  const switchMode = useCallback(
+    (m: ViewMode) => {
+      if (m === mode) return;
+      persist(m);
+      const apply = () =>
+        flushSync(() => {
+          setFocusPhotoId(null);
+          setMode(m);
+        });
+      const doc = document as DocWithVT;
+      if (!doc.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) apply();
+      else doc.startViewTransition(apply);
     },
-    [setModePersist]
+    [mode, persist]
   );
 
-  const switchToGrid = useCallback(() => {
-    setSliderFocusPhotoId(null);
-    setModePersist('grid');
-  }, [setModePersist]);
+  /**
+   * Grid tile → strip: the clicked photo grows into its place in the strip (View Transitions API).
+   * The strip's copy is given the file the tile already shows, decoded before the "after" picture,
+   * so nothing flashes; the strip-sized file swaps in once the move is over.
+   */
+  const openInStrip = useCallback(
+    (photoId: string, tileImg: HTMLImageElement | null) => {
+      persist('slider');
+      const doc = document as DocWithVT;
+      const render = () =>
+        flushSync(() => {
+          setFocusPhotoId(photoId);
+          setMode('slider');
+        });
+      if (
+        !doc.startViewTransition ||
+        !tileImg ||
+        morphing.current ||
+        document.visibilityState === 'hidden' ||
+        matchMedia('(prefers-reduced-motion: reduce)').matches
+      ) {
+        render();
+        return;
+      }
+      morphing.current = true;
+      const html = document.documentElement;
+      tileImg.style.viewTransitionName = 'ae-morph';
+      html.classList.add('ae-vt-morph');
 
-  const showProjectHeading = Boolean(projectTitle) && mode !== 'slider';
-  const showHeadingReserve =
-    reserveProjectHeadingSpace && !projectTitle && mode !== 'slider';
-
-  const galleryBody =
-    mode === 'grid' ? (
-      <MasonryGrid photos={photos} onOpenPhotoInSlider={openSliderAtPhoto} />
-    ) : (
-      <PhotoSlider
-        photos={photos}
-        initialFocusPhotoId={sliderFocusPhotoId}
-        onSwitchToGrid={switchToGrid}
-      />
-    );
-
-  if (!hydrated) {
-    return (
-      <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
-        {projectTitle ? (
-          <GridProjectHeading title={projectTitle} location={projectLocation} />
-        ) : null}
-        {reserveProjectHeadingSpace && !projectTitle ? (
-          <div className={styles.headingReserve} aria-hidden="true">
-            {/* Placeholder text sizes the bar like a one-line project title (no location). */}
-            <GridProjectHeading title="." />
-          </div>
-        ) : null}
-        <div className={styles.galleryStage}>
-          <MasonryGrid photos={photos} onOpenPhotoInSlider={openSliderAtPhoto} />
-        </div>
-      </div>
-    );
-  }
-
-  const fabNavOpen = mobileNavOpen && isMobile;
-
-  const floatButton = (
-    <button
-      type="button"
-      className={`${styles.floatToggle} ${fabNavOpen ? styles.floatToggleNavOpen : ''}`}
-      onClick={toggleMode}
-      aria-label={mode === 'grid' ? 'Switch to horizontal gallery' : 'Switch to grid view'}
-    >
-      {mode === 'grid' ? <IconFilledRectangle /> : <IconSliderMode />}
-    </button>
+      let target: HTMLImageElement | null = null;
+      let restore: (() => void) | null = null;
+      let ran = false;
+      const t = doc.startViewTransition(async () => {
+        ran = true;
+        tileImg.style.viewTransitionName = '';
+        render();
+        const slide = stageRef.current?.querySelector<HTMLElement>(`[data-photo-id="${CSS.escape(photoId)}"]`);
+        target = slide?.querySelector<HTMLImageElement>('img[data-ae-photo]') ?? null;
+        if (!target || !slide) return;
+        const img = target;
+        const placeholder = slide.querySelector<HTMLElement>('img[aria-hidden]');
+        const prev = { src: img.getAttribute('src'), srcset: img.getAttribute('srcset') };
+        img.removeAttribute('srcset');
+        img.src = tileImg.currentSrc || tileImg.src;
+        img.style.transition = 'none';
+        img.style.opacity = '1';
+        if (placeholder) placeholder.style.display = 'none';
+        img.style.viewTransitionName = 'ae-morph';
+        restore = () => {
+          img.style.viewTransitionName = '';
+          img.style.transition = '';
+          img.style.opacity = '';
+          /* Back to the strip-sized candidates; the current file stays visible until one is ready */
+          if (prev.srcset) {
+            const pre = new Image();
+            pre.sizes = img.sizes;
+            pre.srcset = prev.srcset;
+            pre
+              .decode()
+              .then(() => {
+                if (prev.srcset) img.srcset = prev.srcset;
+                if (prev.src) img.setAttribute('src', prev.src);
+              })
+              .catch(() => {});
+          }
+        };
+        try {
+          await img.decode();
+        } catch {
+          /* shows once loaded */
+        }
+      });
+      /* Safety net: if the page paints no frame for a second (throttled), show the strip without the move */
+      setTimeout(() => {
+        if (!ran) t.skipTransition();
+      }, 1000);
+      t.finished.finally(() => {
+        morphing.current = false;
+        html.classList.remove('ae-vt-morph');
+        tileImg.style.viewTransitionName = '';
+        restore?.();
+      });
+    },
+    [persist]
   );
+
+  const count = `${photos.length} photograph${photos.length === 1 ? '' : 's'}`;
 
   return (
-    <>
-      <div className={`${styles.wrap} ${styles.wrapWithToolbar}`}>
-        {showProjectHeading ? (
-          <GridProjectHeading title={projectTitle!} location={projectLocation} />
-        ) : null}
-        {showHeadingReserve ? (
-          <div className={styles.headingReserve} aria-hidden="true">
-            <GridProjectHeading title="." />
+    <section className={styles.wrap} aria-labelledby="gallery-title">
+      {/* Named inline: CSS Modules would rename a view-transition-name declared in the stylesheet */}
+      <header className={styles.bar} style={{ viewTransitionName: 'ae-galbar' }}>
+        <h1 className={styles.title} id="gallery-title">
+          {isProject ? <Icon name="pin" size={16} className={styles.pin} /> : null}
+          <BlurText text={title} className={styles.name} />
+          {location?.trim() ? <span className={styles.location}>{location.trim()}</span> : null}
+        </h1>
+        <div className={styles.side}>
+          <span className={styles.count}>{count}</span>
+          <div className={styles.seg} role="group" aria-label="Gallery view" data-mode={mode}>
+            <span className={styles.segFill} aria-hidden />
+            <button
+              type="button"
+              aria-pressed={mode === 'grid'}
+              aria-label="Grid view"
+              title="Grid view"
+              onClick={() => switchMode('grid')}
+            >
+              <Icon name="grid" size={16} />
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === 'slider'}
+              aria-label="Strip view"
+              title="Strip view"
+              onClick={() => switchMode('slider')}
+            >
+              <Icon name="strip" size={16} />
+            </button>
           </div>
-        ) : null}
-        <div className={styles.galleryStage}>{galleryBody}</div>
+        </div>
+      </header>
+      <div className={styles.stage} ref={stageRef}>
+        {mode === 'grid' ? (
+          <MasonryGrid photos={photos} onOpenPhotoInSlider={openInStrip} nextProject={nextProject} />
+        ) : (
+          <PhotoSlider photos={photos} initialFocusPhotoId={focusPhotoId} onSwitchToGrid={() => switchMode('grid')} />
+        )}
       </div>
-
-      {typeof document !== 'undefined' && mode === 'grid'
-        ? createPortal(floatButton, document.body)
-        : null}
-    </>
+    </section>
   );
 }

@@ -1,0 +1,247 @@
+@keyframes fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 64px;
+  align-items: start;
+  width: 100%;
+  max-width: 1240px;
+  padding: 96px 48px 120px;
+}
+
+.title {
+  font-size: clamp(44px, 6vw, 88px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+
+.tagline {
+  margin-top: 28px;
+  max-width: 34ch;
+  font-size: 19px;
+  line-height: 1.5;
+}
+
+.list {
+  list-style: none;
+  margin-top: 40px;
+  display: grid;
+  gap: 4px;
+}
+
+.list a {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 0;
+  color: var(--text-primary);
+  transition: opacity var(--t-hover) ease;
+}
+
+.list a:hover {
+  opacity: 0.8;
+}
+
+.list svg {
+  color: var(--text-secondary);
+}
+
+.list small {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.panel {
+  background: var(--bg-raise);
+  padding: 36px;
+}
+
+.formTitle {
+  margin-bottom: 24px;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--field-border);
+  border-radius: 0;
+  transition:
+    border-color var(--t-hover) ease,
+    background-color var(--t-hover) ease;
+}
+
+.field textarea {
+  min-height: 168px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.field input:hover,
+.field textarea:hover {
+  border-color: var(--field-border-hover);
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--text-primary);
+  background: #0d0d0d;
+}
+
+.field[data-error='true'] input,
+.field[data-error='true'] textarea {
+  border-color: var(--danger);
+}
+
+.error {
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.error:empty {
+  display: none;
+}
+
+.foot {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.submit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 22px;
+  overflow: hidden;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    background-color var(--t-hover) ease,
+    transform 160ms var(--ease-out);
+}
+
+.submit:hover {
+  background: #fff;
+}
+
+.submit:active {
+  transform: scale(0.97);
+}
+
+.submit svg {
+  transition: transform var(--t-ui) var(--ease-out);
+}
+
+.submit:hover svg {
+  transform: translateX(4px);
+}
+
+.submit[data-state='sending'] {
+  pointer-events: none;
+}
+
+/* While sending, a bar fills along the button */
+.bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--bg-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.submit[data-state='sending'] .bar {
+  animation: fill 2.4s var(--ease-io) forwards;
+}
+
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity var(--t-ui) ease,
+    transform var(--t-ui) var(--ease-out);
+}
+
+.feedback[data-visible='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+.feedback[data-tone='err'] {
+  color: var(--danger);
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 32px 16px 96px;
+  }
+
+  .panel {
+    margin: 0 -16px;
+    padding: 24px 16px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

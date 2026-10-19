@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { fontAhmedEmad, fontInter, fontPlayfair } from "@/lib/fonts";
+import { fontAhmedEmad, fontInter } from "@/lib/fonts";
+import Toaster from "@/components/Toaster";
 
 const SITE_NAME = "Ahmed Emad Photographs";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ahmedemadphotographs.com";
@@ -88,7 +89,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontAhmedEmad.variable} ${fontInter.variable} ${fontPlayfair.variable}`}
+      className={`${fontAhmedEmad.variable} ${fontInter.variable}`}
     >
       <head>
         <script
@@ -96,7 +97,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

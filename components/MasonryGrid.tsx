@@ -1,9 +1,11 @@
 'use client';
 
-import { memo, useRef, useState } from 'react';
-import GalleryImage from '@/components/GalleryImage';
+import { memo, useRef } from 'react';
+import Link from 'next/link';
+import GalleryPhoto from '@/components/GalleryPhoto';
+import Icon from '@/components/Icon';
 import PhotoShareButton from '@/components/PhotoShareButton';
-import { coverSizesVh } from '@/lib/cloudinaryImage';
+import { cloudinaryWidth, coverSizesVh } from '@/lib/cloudinaryImage';
 import {
   GRID_HIGH_PRIORITY_COUNT,
   GRID_INITIAL_EAGER_COUNT,
@@ -24,44 +26,50 @@ interface Photo {
   height: number;
 }
 
+export type NextProject = {
+  slug: string;
+  name: string;
+  location?: string;
+  cover: string;
+  /** "Next project" on a project page, "Start with a project" on the main portfolio */
+  label: string;
+};
+
 interface MasonryGridProps {
   photos: Photo[];
-  /** Click a photo to open horizontal gallery on that image */
-  onOpenPhotoInSlider?: (photoId: string) => void;
+  /** Click a photo to open the strip on it; gets the tile's image for the morph */
+  onOpenPhotoInSlider?: (photoId: string, img: HTMLImageElement | null) => void;
+  nextProject?: NextProject;
 }
 
-function isLandscape(photo: Photo): boolean {
-  return photo.width > photo.height;
-}
+/** Tiles that get the entrance; the rest are off screen when the grid appears */
+const ENTRANCE_COUNT = 16;
 
 const GridTile = memo(function GridTile({
   photo,
   index,
+  total,
   observe,
   onOpenPhotoInSlider,
 }: {
   photo: Photo;
   index: number;
+  total: number;
   observe: Observe;
-  onOpenPhotoInSlider?: (photoId: string) => void;
+  onOpenPhotoInSlider?: (photoId: string, img: HTMLImageElement | null) => void;
 }) {
-  const landscape = isLandscape(photo);
+  const landscape = photo.width > photo.height;
   const [ref, near] = useTileNear<HTMLDivElement>(observe, index < GRID_INITIAL_EAGER_COUNT);
-  /* Per-tile so one image finishing does not re-render the whole grid */
-  const [loaded, setLoaded] = useState(false);
-  const stagger = Math.min(index, 24) * 0.05;
 
   return (
     <div
       ref={ref}
-      className={`${styles.item} ${landscape ? styles.itemLandscape : ''} ${loaded ? styles.loaded : ''}`}
-      style={{ animationDelay: `${stagger}s` }}
+      className={`${styles.item} ${landscape ? styles.itemLandscape : ''} ${index < ENTRANCE_COUNT ? styles.enter : ''}`}
+      style={{ '--i': index } as React.CSSProperties}
+      data-photo-id={photo.id}
     >
-      <div
-        className={`${styles.imageWrapper} noImageSave ${onOpenPhotoInSlider ? styles.imageWrapperClickable : ''}`}
-        onContextMenu={(e) => e.preventDefault()}
-      >
-        <GalleryImage
+      <div className={`${styles.imageWrapper} noImageSave`} onContextMenu={(e) => e.preventDefault()}>
+        <GalleryPhoto
           src={photo.src}
           alt={photo.alt}
           width={photo.width}
@@ -74,15 +82,18 @@ const GridTile = memo(function GridTile({
           )}
           eager={near}
           highPriority={index < GRID_HIGH_PRIORITY_COUNT}
-          onLoad={() => setLoaded(true)}
-          className={styles.imageFill}
         />
         {onOpenPhotoInSlider ? (
           <button
             type="button"
             className={styles.openInSliderHit}
-            onClick={() => onOpenPhotoInSlider(photo.id)}
-            aria-label={`Open ${photo.alt || 'photo'} in gallery view`}
+            onClick={(e) =>
+              onOpenPhotoInSlider(
+                photo.id,
+                e.currentTarget.parentElement?.querySelector<HTMLImageElement>('img[data-ae-photo]') ?? null
+              )
+            }
+            aria-label={`Open photograph ${index + 1} of ${total} in strip view`}
           />
         ) : null}
         <div className={styles.shareWrap} data-ae-no-pan-scroll>
@@ -93,7 +104,7 @@ const GridTile = memo(function GridTile({
   );
 });
 
-export default function MasonryGrid({ photos, onOpenPhotoInSlider }: MasonryGridProps) {
+export default function MasonryGrid({ photos, onOpenPhotoInSlider, nextProject }: MasonryGridProps) {
   const masonryRef = useRef<HTMLDivElement>(null);
   const observe = useScrollerPrefetch(masonryRef);
 
@@ -108,6 +119,10 @@ export default function MasonryGrid({ photos, onOpenPhotoInSlider }: MasonryGrid
     return (
       <div className={styles.empty}>
         <p>No photos yet</p>
+        <Link href="/portfolio" className={styles.back}>
+          <Icon name="arrow-left" size={16} />
+          Back to portfolio
+        </Link>
       </div>
     );
   }
@@ -119,10 +134,25 @@ export default function MasonryGrid({ photos, onOpenPhotoInSlider }: MasonryGrid
           key={photo.id}
           photo={photo}
           index={index}
+          total={photos.length}
           observe={observe}
           onOpenPhotoInSlider={onOpenPhotoInSlider}
         />
       ))}
+      {nextProject ? (
+        <Link href={`/portfolio/${nextProject.slug}`} className={styles.next} aria-label={`${nextProject.label}: ${nextProject.name}`}>
+          {nextProject.cover ? (
+            // eslint-disable-next-line @next/next/no-img-element -- Cloudinary thumbnail
+            <img src={cloudinaryWidth(nextProject.cover, 800)} alt="" loading="lazy" draggable={false} />
+          ) : null}
+          <span className={styles.nextName}>{nextProject.name}</span>
+          <span className={styles.nextLine}>
+            {nextProject.label}
+            {nextProject.location?.trim() ? `, ${nextProject.location.trim()}` : ''}
+            <Icon name="arrow-right" size={16} />
+          </span>
+        </Link>
+      ) : null}
     </div>
   );
 }

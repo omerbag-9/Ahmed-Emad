@@ -1,31 +1,33 @@
 import styles from './PageLoader.module.css';
 
 type Props = {
-  /** Fills viewport with site background (e.g. route transitions). */
-  fullPage?: boolean;
-  /** Short line under the monogram; keep uppercase-friendly. */
+  /** Short line under the name. */
   caption?: string;
 };
 
-export default function PageLoader({ fullPage = false, caption = 'Loading' }: Props) {
+const WORD = 'AHMED EMAD';
+
+/**
+ * Route loader (app/loading.tsx). One signal: the name inks in letter by letter, like a print
+ * developing, with a thin bar at the top of the screen. Hidden for the first 150ms so fast
+ * navigations never flash it.
+ */
+export default function PageLoader({ caption = 'Loading' }: Props) {
   return (
-    <div
-      className={`${styles.wrap} ${fullPage ? styles.fullPage : styles.embedded}`}
-      role="status"
-      aria-live="polite"
-      aria-busy="true"
-      aria-label={caption}
-    >
-      <div className={styles.inner}>
-        <p className={styles.monogram}>AHMED EMAD</p>
-        <div className={styles.track} aria-hidden>
-          <div className={styles.bar} />
-        </div>
-        <div className={styles.dots} aria-hidden>
-          <span className={styles.dot} />
-          <span className={styles.dot} />
-          <span className={styles.dot} />
-        </div>
+    <div className={styles.wrap} role="status" aria-live="polite" aria-label={caption}>
+      <span className={styles.bar} aria-hidden />
+      <div className={styles.inner} aria-hidden>
+        <p className={styles.word}>
+          {WORD.split('').map((c, i) =>
+            c === ' ' ? (
+              <span key={i} className={styles.space} />
+            ) : (
+              <span key={i} style={{ '--k': i } as React.CSSProperties}>
+                {c}
+              </span>
+            )
+          )}
+        </p>
         <p className={styles.caption}>{caption}</p>
       </div>
     </div>

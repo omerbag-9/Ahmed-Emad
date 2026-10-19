@@ -1,27 +1,21 @@
 .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
   /* Solid tint, no backdrop-filter: one per photo made every scroll frame re-blur the images behind */
-  background: rgba(0, 0, 0, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition), transform 0.15s ease;
+  background: rgba(10, 10, 10, 0.72);
+  color: var(--text-primary);
   z-index: 4;
+  transition:
+    background-color var(--t-hover) ease,
+    transform 160ms var(--ease-out);
 }
 
 .btn:hover {
-  background: rgba(0, 0, 0, 0.72);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(10, 10, 10, 0.92);
 }
 
 .btn:active {
-  transform: scale(0.94);
+  transform: scale(0.92);
 }

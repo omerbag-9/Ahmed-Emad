@@ -1,7 +1,9 @@
 'use client';
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import GalleryImage from '@/components/GalleryImage';
+import GalleryPhoto from '@/components/GalleryPhoto';
+import Icon from '@/components/Icon';
+import RollingNumber from '@/components/motion/RollingNumber';
 import PhotoShareButton from '@/components/PhotoShareButton';
 import { coverSizesVh } from '@/lib/cloudinaryImage';
 import { STRIP_INITIAL_EAGER_RADIUS, STRIP_MAX_HEIGHT_VH } from '@/lib/galleryConstants';
@@ -24,49 +26,6 @@ export interface PhotoSliderProps {
   onSwitchToGrid?: () => void;
   /** After opening from grid, center this photo in the strip */
   initialFocusPhotoId?: string | null;
-}
-
-function IconGrid() {
-  const u = 4.5;
-  const g = 2;
-  const o = 3.25;
-  const cells = [];
-  for (let row = 0; row < 3; row += 1) {
-    for (let col = 0; col < 3; col += 1) {
-      cells.push(
-        <rect
-          key={`${row}-${col}`}
-          x={o + col * (u + g)}
-          y={o + row * (u + g)}
-          width={u}
-          height={u}
-          rx={0.35}
-          fill="currentColor"
-        />
-      );
-    }
-  }
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
-      {cells}
-    </svg>
-  );
-}
-
-function IconExpand() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7M3 9V3h6M21 15v6h-6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconCollapse() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <path d="M4 14v6h6M20 10V4h-6M14 4l-5 5M10 20l5-5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
 }
 
 /** Scroll the strip so `item` is centered (smooth for arrow controls). */
@@ -159,11 +118,12 @@ const StripTile = memo(function StripTile({
         registerItem(photo.id, el);
       }}
       className={`${styles.stripItem} noImageSave`}
+      data-photo-id={photo.id}
       style={{ aspectRatio: `${w} / ${h}` }}
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className={styles.cellFill}>
-        <GalleryImage
+        <GalleryPhoto
           src={photo.src}
           alt={photo.alt}
           width={w}
@@ -171,7 +131,6 @@ const StripTile = memo(function StripTile({
           sizes={coverSizesVh(w, h, STRIP_MAX_HEIGHT_VH)}
           eager={near}
           highPriority={highPriority}
-          className={styles.imageNative}
         />
         <div className={styles.shareWrap} data-ae-no-pan-scroll>
           <PhotoShareButton photoId={photo.id} />
@@ -196,6 +155,11 @@ export default function PhotoSlider({
   const [fullscreen, setFullscreen] = useState(false);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
+  /** Index of the photo at the strip's centre, for the counter */
+  const [current, setCurrent] = useState(() =>
+    Math.max(0, initialFocusPhotoId ? photos.findIndex((p) => p.id === initialFocusPhotoId) : 0)
+  );
+  const currentRef = useRef(current);
   const observe = useScrollerPrefetch(stripRef);
 
   const registerItem = useCallback((id: string, el: HTMLDivElement | null) => {
@@ -248,7 +212,14 @@ export default function PhotoSlider({
       rebuildStripLayout();
     }
     const cx = strip.scrollLeft + strip.clientWidth / 2;
-    const idx = indexFromScrollCached(cx, stripLayoutRef.current);
+    let idx = indexFromScrollCached(cx, stripLayoutRef.current);
+    /* The first and last photos cannot reach the centre: count the scroll ends as them */
+    if (strip.scrollLeft <= 2) idx = 0;
+    else if (strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 2) idx = items.length - 1;
+    if (currentRef.current !== idx) {
+      currentRef.current = idx;
+      setCurrent(idx);
+    }
     const nextPrev = idx > 0;
     const nextNext = idx < items.length - 1;
     if (edgesRef.current.canPrev !== nextPrev || edgesRef.current.canNext !== nextNext) {
@@ -333,9 +304,7 @@ export default function PhotoSlider({
     const items = orderedStripItems();
     if (items.length === 0) return;
     rebuildStripLayout();
-    const cx = strip.scrollLeft + strip.clientWidth / 2;
-    const idx = indexFromScrollCached(cx, stripLayoutRef.current);
-    const prevIdx = Math.max(0, idx - 1);
+    const prevIdx = Math.max(0, currentRef.current - 1);
     scrollItemCenterIntoStrip(strip, items[prevIdx]!);
   }, [photos, orderedStripItems, rebuildStripLayout]);
 
@@ -345,13 +314,32 @@ export default function PhotoSlider({
     const items = orderedStripItems();
     if (items.length === 0) return;
     rebuildStripLayout();
-    const cx = strip.scrollLeft + strip.clientWidth / 2;
-    const idx = indexFromScrollCached(cx, stripLayoutRef.current);
-    const nextIdx = Math.min(items.length - 1, idx + 1);
+    const nextIdx = Math.min(items.length - 1, currentRef.current + 1);
     scrollItemCenterIntoStrip(strip, items[nextIdx]!);
   }, [photos, orderedStripItems, rebuildStripLayout]);
 
   useHorizontalPointerDragScroll(stripRef);
+
+  /* Arrows step through photos, Esc returns to the grid, F toggles fullscreen */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goNext();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goPrev();
+      } else if (e.key === 'Escape' && !document.fullscreenElement) {
+        onSwitchToGrid?.();
+      } else if (e.key === 'f' || e.key === 'F') {
+        void toggleFullscreen(wrapRef.current);
+      }
+    };
+    addEventListener('keydown', onKey);
+    return () => removeEventListener('keydown', onKey);
+  }, [goNext, goPrev, onSwitchToGrid]);
 
   const onFullscreenClick = () => toggleFullscreen(wrapRef.current);
 
@@ -390,21 +378,30 @@ export default function PhotoSlider({
       </div>
 
       <footer className={styles.footerBar} aria-label="Gallery controls">
-        {onSwitchToGrid ? (
-          <button type="button" className={styles.toolBtn} onClick={onSwitchToGrid} aria-label="Grid view">
-            <IconGrid />
+        <div className={styles.toolGroup}>
+          {onSwitchToGrid ? (
+            <button type="button" className={styles.toolBtn} onClick={onSwitchToGrid} aria-label="Grid view" title="Grid view (Esc)">
+              <Icon name="grid" />
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className={`${styles.toolBtn} ${styles.fullscreenTool}`}
+            onClick={onFullscreenClick}
+            aria-label={fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+            title={fullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
+          >
+            <Icon name={fullscreen ? 'collapse' : 'expand'} />
           </button>
-        ) : null}
-        <button
-          type="button"
-          className={`${styles.toolBtn} ${styles.fullscreenTool}`}
-          onClick={onFullscreenClick}
-          aria-label={fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-        >
-          {fullscreen ? <IconCollapse /> : <IconExpand />}
-        </button>
+        </div>
         {showNav ? (
-          <>
+          <div className={styles.toolGroup}>
+            <span className={styles.counter} aria-live="polite">
+              <b>
+                <RollingNumber value={current + 1} />
+              </b>{' '}
+              of {photos.length}
+            </span>
             <button
               type="button"
               className={styles.toolBtn}
@@ -414,10 +411,9 @@ export default function PhotoSlider({
               }}
               disabled={!canPrev}
               aria-label="Previous photo"
+              title="Previous (←)"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <Icon name="chevron-left" />
             </button>
             <button
               type="button"
@@ -428,12 +424,11 @@ export default function PhotoSlider({
               }}
               disabled={!canNext}
               aria-label="Next photo"
+              title="Next (→)"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <Icon name="chevron-right" />
             </button>
-          </>
+          </div>
         ) : null}
       </footer>
     </div>

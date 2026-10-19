@@ -46,6 +46,7 @@ export default function GalleryImage({
       src={src}
       className={className}
       draggable={false}
+      data-ae-photo=""
       onDragStart={(e) => e.preventDefault()}
       onLoad={onLoad}
     />

@@ -1,26 +1,43 @@
-/* Fonts are self-hosted via next/font (lib/fonts.ts) on <html>: --font-ahmed-emad, --font-inter, --font-playfair */
+/* Fonts are self-hosted via next/font (lib/fonts.ts) on <html>: --font-ahmed-emad, --font-inter */
 
 :root {
   --bg-primary: #0a0a0a;
+  --bg-sidebar: #0f0f0f;
   --bg-secondary: #111111;
+  --bg-raise: #151515;
   --bg-tertiary: #1a1a1a;
-  --bg-hover: #222222;
+  --bg-hover: #1c1c1c;
+  --bg-active: #222222;
   --text-primary: #f5f5f5;
-  --text-secondary: #a0a0a0;
-  --text-muted: #666666;
+  --text-secondary: #b4b4b4;
+  /* Was #666 (3.4:1 on the page, fails AA for small text); #8a8a8a is 5.6:1 */
+  --text-muted: #8a8a8a;
   --accent: #ffffff;
   --accent-dim: rgba(255, 255, 255, 0.1);
-  --accent-glow: rgba(255, 255, 255, 0.05);
   --border: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(255, 255, 255, 0.15);
-  --danger: #e53e3e;
+  --field-border: #2a2a2a;
+  --field-border-hover: #3a3a3a;
+  --danger: #ff8a80;
+  --danger-bg: #3a1716;
   --success: #38a169;
   --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: var(--font-playfair), 'Playfair Display', Georgia, serif;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Fixed mobile bar (burger + name) in Sidebar — keep in sync with .mobileHeader padding + 40px control */
-  --mobile-header-offset: calc(41px + 1rem + env(safe-area-inset-top, 0px));
+  --font-brand: var(--font-ahmed-emad), Georgia, serif;
+
+  /* Motion: four tokens by job instead of one curve for everything */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-hover: 200ms;
+  --t-ui: 380ms;
+  --t-reveal: 800ms;
+  --t-picture: 1200ms;
+  /* Kept for modules not yet moved to the tokens above */
+  --transition: var(--t-hover) ease;
+
+  --sidebar-w: 272px;
+  --sidebar-rail: 64px;
+  /* Fixed mobile bar (burger + name) in Sidebar */
+  --mobile-header-offset: calc(56px + env(safe-area-inset-top, 0px));
 }
 
 * {
@@ -38,10 +55,15 @@ body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  line-height: 1.6;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /**
@@ -57,7 +79,6 @@ body {
   -webkit-user-drag: none;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -67,102 +88,24 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
+  background: #444;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--text-muted);
 }
 
-/* Selection */
 ::selection {
   background: rgba(255, 255, 255, 0.2);
   color: var(--text-primary);
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes lineReveal {
-  from {
-    width: 0;
-  }
-  to {
-    width: 60px;
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.6s var(--transition) forwards;
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s var(--transition) forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.5s var(--transition) forwards;
-}
-
-/* Links */
 a {
   color: inherit;
   text-decoration: none;
 }
 
-/* Responsive Images - Download Protection */
 img {
   max-width: 100%;
   height: auto;
@@ -171,7 +114,6 @@ img {
   -webkit-touch-callout: none;
 }
 
-/* Button Reset */
 button {
   cursor: pointer;
   border: none;
@@ -181,20 +123,104 @@ button {
   color: inherit;
 }
 
-/* Input Reset */
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: inherit;
   font-size: inherit;
 }
 
-/* Photo slider: hide project title row (IN BRIEF, etc.) */
-html[data-ae-gallery="slider"] .portfolio-project-chrome {
-  display: none !important;
+.visuallyHidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
-@media (min-width: 901px) {
-  html[data-ae-gallery="slider"] .portfolio-main {
-    padding-left: 0;
-    padding-right: 0;
+/* Page entrance on navigation (app/(site)/template.tsx) */
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/*
+ * Grid tile → strip slide (ResponsiveGallery). The tile is a crop of the photo and the slide shows
+ * all of it, so the snapshots are re-cropped (cover) inside a clipped box while it grows, not
+ * stretched. The rest of the page: the grid fades out early, the strip fades in under the photo.
+ */
+::view-transition-group(ae-morph) {
+  animation-duration: 560ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  overflow: clip;
+  z-index: 2;
+}
+
+::view-transition-image-pair(ae-morph) {
+  isolation: isolate;
+}
+
+::view-transition-old(ae-morph),
+::view-transition-new(ae-morph) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation-duration: 560ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html.ae-vt-morph::view-transition-old(root) {
+  animation: aeVtOut 240ms ease both;
+}
+
+html.ae-vt-morph::view-transition-new(root) {
+  animation: aeVtIn 380ms ease 140ms both;
+}
+
+/* The sidebar and the gallery title bar hold still while the gallery changes */
+::view-transition-group(ae-sidebar),
+::view-transition-old(ae-sidebar),
+::view-transition-new(ae-sidebar),
+::view-transition-group(ae-mobilebar),
+::view-transition-old(ae-mobilebar),
+::view-transition-new(ae-mobilebar),
+::view-transition-group(ae-galbar),
+::view-transition-old(ae-galbar),
+::view-transition-new(ae-galbar) {
+  animation: none;
+}
+
+@keyframes aeVtOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes aeVtIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

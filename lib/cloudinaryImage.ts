@@ -30,6 +30,21 @@ function cloudinaryDownscaleUrl(src: string, width: number): string {
   return `${src.slice(0, i)}c_limit,w_${width},${CLOUDINARY_DOWNSCALE_QUALITY}/${src.slice(i)}`;
 }
 
+/** One downscaled Cloudinary file (thumbnails, previews); non-Cloudinary sources are returned as-is. */
+export function cloudinaryWidth(src: string, width: number): string {
+  return isCloudinaryUploadSrc(src) ? cloudinaryDownscaleUrl(src, width) : src;
+}
+
+/**
+ * A ~1 KB, 32px-wide version shown blurred under a photo until the real file has loaded, so a tile
+ * is never an empty box. Undefined for non-Cloudinary sources (local dev uploads).
+ */
+export function cloudinaryPlaceholder(src: string): string | undefined {
+  if (!isCloudinaryUploadSrc(src)) return undefined;
+  const i = src.indexOf(UPLOAD_SEGMENT) + UPLOAD_SEGMENT.length;
+  return `${src.slice(0, i)}c_limit,w_32,q_30,f_auto/${src.slice(i)}`;
+}
+
 /**
  * `srcset` for a gallery photo, or undefined when the source is not a Cloudinary upload
  * (local dev uploads are served as-is).

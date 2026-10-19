@@ -1,9 +1,9 @@
-@keyframes fadeIn {
+/* ReactBits Masonry-style entrance: tiles settle from below out of a soft blur, staggered */
+@keyframes tileIn {
   from {
     opacity: 0;
-  }
-  to {
-    opacity: 1;
+    transform: translateY(28px);
+    filter: blur(6px);
   }
 }
 
@@ -28,7 +28,7 @@
   overscroll-behavior-x: contain;
   scrollbar-width: none;
   align-content: stretch;
-  padding: 0;
+  padding: 0 24px 0 0;
   box-sizing: border-box;
   /* 2 rows → one row-gap; col width = ((H - gap) / 2) * 3/4 */
   grid-auto-columns: calc((min(82dvh, 880px) - 8px) * 3 / 8);
@@ -40,12 +40,18 @@
   }
 }
 
+.masonry::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 @media (min-width: 901px) {
   .masonry {
     cursor: grab;
   }
 
-  .masonry.ae-pan-scrolling {
+  .masonry:global(.ae-pan-scrolling) {
     cursor: grabbing;
   }
 }
@@ -53,6 +59,7 @@
 @media (max-width: 900px) {
   .masonry {
     gap: 6px;
+    padding: 0;
     grid-auto-columns: calc((min(82dvh, 880px) - 6px) * 3 / 8);
   }
 
@@ -68,9 +75,11 @@
   min-height: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  animation: fadeIn 0.5s ease forwards;
-  cursor: default;
+}
+
+.enter {
+  animation: tileIn 760ms var(--ease-out) backwards;
+  animation-delay: calc(60ms + var(--i, 0) * 45ms);
 }
 
 .itemLandscape {
@@ -80,14 +89,10 @@
 .imageWrapper {
   position: relative;
   overflow: hidden;
-  background: #0a0a0a;
+  background: var(--bg-raise);
   line-height: 0;
   width: 100%;
   height: 100%;
-}
-
-.imageWrapperClickable {
-  cursor: pointer;
 }
 
 /* Full-cell hit target; share button stacks above (higher z-index) */
@@ -95,72 +100,126 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
   cursor: pointer;
 }
 
 .openInSliderHit:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.45);
-  outline-offset: -2px;
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
 }
 
 .shareWrap {
   position: absolute;
-  bottom: 0.35rem;
-  right: 0.35rem;
+  bottom: 8px;
+  right: 8px;
   z-index: 5;
-  pointer-events: auto;
 }
 
 @media (hover: hover) {
   .shareWrap {
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transform: translateY(6px);
     pointer-events: none;
+    transition:
+      opacity var(--t-hover) ease,
+      transform var(--t-ui) var(--ease-out);
   }
 
-  .item.loaded:hover .shareWrap,
-  .item.loaded:focus-within .shareWrap {
+  .item:hover .shareWrap,
+  .item:focus-within .shareWrap {
     opacity: 1;
+    transform: none;
     pointer-events: auto;
   }
 }
 
-/* Grid only: hide share on small viewports (matches ResponsiveGallery mobile breakpoint) */
+/* Grid only: hide share on small viewports */
 @media (max-width: 900px) {
   .shareWrap {
     display: none;
   }
 }
 
-/* No opacity hide-until-load and no hover scale: both read as extra grain on fine detail */
-.imageFill {
+/* Last tile: the next project */
+.next {
+  position: relative;
+  grid-row: span 2;
+  grid-column: span 2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+  background: var(--bg-raise);
+  color: var(--text-primary);
+  animation: tileIn 760ms var(--ease-out) backwards;
+  animation-delay: 300ms;
+}
+
+.next img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   max-width: none;
   object-fit: cover;
-  display: block;
+  opacity: 0.38;
+  transition:
+    opacity var(--t-ui) ease,
+    transform var(--t-picture) var(--ease-out);
+}
+
+.next:hover img {
+  opacity: 0.55;
+  transform: scale(1.03);
+}
+
+.next > span {
+  position: relative;
+}
+
+.nextName {
+  font-size: clamp(26px, 3.2vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-bottom: 6px;
+}
+
+.nextLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.nextLine svg {
+  transition: transform var(--t-ui) var(--ease-out);
+}
+
+.next:hover .nextLine svg {
+  transform: translateX(5px);
 }
 
 .empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
   min-height: 50vh;
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  font-style: italic;
+  color: var(--text-secondary);
 }
 
-.masonry::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  transition: color var(--t-hover) ease;
 }
 
+.back:hover {
+  color: var(--text-primary);
+}

@@ -1,0 +1,47 @@
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 16px;
+  min-height: 44px;
+  background: #1f1f1f;
+  color: var(--text-primary);
+  font-size: 14.5px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); /* floats over the page */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition:
+    opacity 220ms ease,
+    transform var(--t-ui) var(--ease-out),
+    visibility 0s linear 220ms;
+}
+
+.on {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+  transition:
+    opacity 220ms ease,
+    transform var(--t-ui) var(--ease-out);
+}
+
+.action {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  transition: background-color var(--t-hover) ease;
+}
+
+.action:hover {
+  background: var(--bg-active);
+}
