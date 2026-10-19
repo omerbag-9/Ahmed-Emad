@@ -105,6 +105,18 @@ const PATHS = {
     <path d="M4 4l16 16M10 6a9 9 0 0 1 2-.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.6 3.4M6.6 7.6A16 16 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4-1M9.9 10a3 3 0 0 0 4.1 4.1" />
   ),
   external: <path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" />,
+  monitor: (
+    <>
+      <rect x="3" y="4.5" width="18" height="12" />
+      <path d="M9 20h6M12 16.5V20" />
+    </>
+  ),
+  mobile: (
+    <>
+      <rect x="7" y="3" width="10" height="18" />
+      <path d="M11 18h2" />
+    </>
+  ),
   logout: <path d="M15 4h5v16h-5M10 8l-4 4 4 4M6 12h10" />,
   home: <path d="M4 11l8-7 8 7v9h-5v-6h-6v6H4z" />,
   photo: (

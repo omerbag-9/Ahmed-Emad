@@ -109,3 +109,48 @@
   background: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
+
+/* Desktop / Phone switch: each screen has its own list */
+.screens {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  max-width: 420px;
+  margin-bottom: 12px;
+}
+
+.screen {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-raise);
+  transition:
+    background-color var(--t-hover) ease,
+    color var(--t-hover) ease;
+}
+
+.screen:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.screen[aria-selected='true'] {
+  color: var(--text-primary);
+  background: var(--bg-active);
+}
+
+.screen svg {
+  grid-row: span 2;
+}
+
+.screenNote {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
