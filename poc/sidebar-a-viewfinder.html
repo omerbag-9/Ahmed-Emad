@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sidebar Viewfinder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Buda:wght@300&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-sidebar: #0f0f0f;
+  --bg-raise: #151515;
+  --bg-tertiary: #1a1a1a;
+  --bg-hover: #1c1c1c;
+  --bg-active: #222222;
+  --text-primary: #f5f5f5;
+  --text-secondary: #b4b4b4;
+  --text-muted: #8a8a8a;
+  --lit: #f3cf86;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-brand: 'Buda', Georgia, serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-hover: 200ms;
+  --t-ui: 380ms;
+  --sidebar-w: 272px;
+}
+:root[data-theme='light'] { color-scheme: dark; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+img { display: block; user-select: none; -webkit-user-drag: none; }
+
+.layout { display: grid; grid-template-columns: var(--sidebar-w) 1fr; height: 100dvh; }
+
+/* ---------- Sidebar (shared) ---------- */
+.sidebar {
+  position: relative;
+  height: 100dvh;
+  background: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 16px 20px;
+  overflow: hidden;
+  z-index: 100;
+}
+.top { padding: 0 8px; margin-bottom: 32px; }
+.lockup { display: inline-flex; flex-direction: column; font-size: 1.3rem; line-height: 1; }
+.lockup .name { font-family: var(--font-brand); font-weight: 300; display: inline-flex; gap: .35em; letter-spacing: .2em; white-space: nowrap; }
+.lockup .name span:first-child { color: var(--text-secondary); }
+.lockup .tag { margin-top: .4rem; font-family: var(--font-brand); font-size: .525em; letter-spacing: .8em; color: var(--text-muted); }
+
+.scroll { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+.marker {
+  position: absolute; left: 0; right: 0; top: 0; height: 40px;
+  background: var(--bg-active); opacity: 0; pointer-events: none;
+  transition: transform 520ms var(--ease-out), height 520ms var(--ease-out), opacity var(--t-hover) ease;
+}
+.marker.on { opacity: 1; }
+.nav { display: flex; flex-direction: column; }
+.navLink {
+  position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 9px 8px; font-size: 15px; color: var(--text-secondary); transition: color var(--t-hover) ease;
+}
+.navLink:hover, .navLink[aria-current] { color: var(--text-primary); }
+.navLink[aria-current] { font-weight: 500; }
+.count { font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.groupHead { display: flex; align-items: center; justify-content: space-between; padding: 9px 8px; margin-top: 24px; font-size: 15px; font-weight: 500; }
+.list { list-style: none; }
+.project { position: relative; display: grid; grid-template-columns: 1fr auto; column-gap: 12px; align-items: baseline; padding: 9px 8px; color: var(--text-secondary); transition: color var(--t-hover) ease; }
+.project:hover, .project[aria-current] { color: var(--text-primary); }
+.project[aria-current] .pName { font-weight: 500; }
+.pName { font-size: 14.5px; line-height: 1.3; position: relative; }
+.pLoc { grid-column: 1; margin-top: 2px; font-size: 13px; line-height: 1.35; color: var(--text-muted); position: relative; }
+.project .count { grid-row: 1; grid-column: 2; position: relative; }
+
+.footer { padding: 18px 8px 0; display: flex; flex-direction: column; gap: 12px; }
+.mailRow { display: flex; align-items: center; justify-content: space-between; margin: 0 -8px; padding: 9px 8px; background: var(--bg-raise); font-size: 13.5px; color: var(--text-secondary); }
+.socials { display: flex; gap: 4px; margin-left: -8px; }
+.socials a { width: 36px; height: 36px; display: grid; place-items: center; color: var(--text-muted); transition: color var(--t-hover) ease, background-color var(--t-hover) ease; }
+.socials a:hover { color: var(--text-primary); background: var(--bg-hover); }
+.copyright { font-size: 13px; color: var(--text-muted); }
+
+/* ---------- A · Viewfinder ---------- */
+.viewfinder { display: none; }
+[data-look='a'] .viewfinder { display: block; margin: 20px 0 4px; padding: 0 8px; }
+.vfFrame { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; background: var(--bg-raise); }
+.vfFrame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Each new cover develops in, like a print in the tray */
+.vfFrame img.develop { animation: develop 1100ms var(--ease-out) both; }
+@keyframes develop {
+  from { opacity: 0; transform: scale(1.06); filter: brightness(1.9) grayscale(1) contrast(.6); }
+  45% { opacity: 1; }
+}
+.vfCaption { display: block; padding: 12px 0 0; min-height: 64px; }
+.vfCaption b { display: block; font-size: 20px; font-weight: 500; letter-spacing: -.01em; line-height: 1.2; color: var(--text-primary); }
+.vfCaption span { font-size: 13px; color: var(--text-muted); }
+.vfCaption.swap > * { animation: capIn 600ms var(--ease-out) both; }
+.vfCaption.swap > span { animation-delay: 70ms; }
+@keyframes capIn { from { opacity: 0; transform: translateY(8px); } }
+[data-look='a'] .pName { font-size: 16px; }
+[data-look='a'] .pLoc { display: none; }
+[data-look='a'] .project { padding: 7px 8px; }
+
+/* ---------- B · Facades ---------- */
+[data-look='b'] .list { display: flex; flex-direction: column; gap: 4px; }
+[data-look='b'] .project {
+  height: 64px; padding: 0 12px; align-content: center; overflow: hidden; color: var(--text-primary);
+  transition: height 620ms var(--ease-out);
+}
+[data-look='b'] .project[aria-current] { height: 148px; align-content: end; padding-bottom: 12px; }
+.band { display: none; }
+[data-look='b'] .band { display: block; position: absolute; inset: 0; overflow: hidden; }
+[data-look='b'] .band img {
+  position: absolute; top: 0; left: 0; height: 100%; width: 128%; max-width: none; object-fit: cover;
+  transform: translateX(-11%); transition: transform 1800ms var(--ease-out);
+}
+/* Hover: the camera tracks along the facade */
+[data-look='b'] .project:hover .band img { transform: translateX(0); }
+[data-look='b'] .band::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.6); transition: background-color var(--t-ui) ease; }
+[data-look='b'] .project:hover .band::after { background: rgba(0,0,0,.42); }
+[data-look='b'] .project[aria-current] .band::after { background: rgba(0,0,0,.58); }
+[data-look='b'] .pLoc { color: var(--text-secondary); font-size: 12.5px; }
+[data-look='b'] .project .count { color: var(--text-secondary); }
+[data-look='b'] .marker.inList { opacity: 0; }
+
+/* ---------- C · Windows ---------- */
+[data-look='c'] .project { grid-template-columns: 1fr auto; row-gap: 2px; padding: 11px 8px; }
+.facade { display: none; }
+[data-look='c'] .facade {
+  grid-column: 2; grid-row: 1 / span 2; align-self: center;
+  display: flex; flex-wrap: wrap-reverse; justify-content: flex-start; gap: 3px; width: calc(6 * 7px + 5 * 3px);
+}
+[data-look='c'] .project .count { display: none; }
+[data-look='c'] .facade i { width: 7px; height: 9px; background: #262626; transition: background-color 260ms ease; transition-delay: 0ms; }
+/* One window per photograph; hover turns the lights on one by one, like a building at dusk */
+[data-look='c'] .project:hover .facade i,
+[data-look='c'] .project[aria-current] .facade i { background: var(--lit); transition-delay: calc(var(--w) * 38ms); }
+[data-look='c'] .project:not([aria-current]):hover .facade i { background: #d9b26a; }
+[data-look='c'] .pLoc { font-size: 12.5px; }
+[data-look='c'] .project .lights { grid-column: 1; font-size: 12.5px; color: var(--text-muted); }
+.lights { display: none; }
+[data-look='c'] .lights { display: block; }
+[data-look='c'] .pLoc + .lights { margin-top: 0; }
+
+/* ---------- Floating cover preview (C only, as today) ---------- */
+.preview {
+  position: fixed; left: calc(var(--sidebar-w) + 12px); top: 0; z-index: 120; width: 220px; background: var(--bg-raise);
+  pointer-events: none; opacity: 0; transform: translate3d(-8px, var(--pv-y, 0px), 0) scale(.98); transform-origin: left center;
+  transition: opacity 220ms ease, transform 420ms var(--ease-out); box-shadow: 0 18px 40px rgba(0,0,0,.55);
+}
+.preview.on { opacity: 1; transform: translate3d(0, var(--pv-y, 0px), 0) scale(1); }
+.preview img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.preview p { padding: 10px 12px 12px; font-size: 13px; color: var(--text-secondary); }
+.preview p b { display: block; font-size: 14px; font-weight: 500; color: var(--text-primary); }
+
+/* ---------- Page beside it (stand-in gallery) ---------- */
+.main { min-width: 0; display: flex; flex-direction: column; height: 100dvh; }
+.bar { flex: 0 0 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 20px 0 24px; }
+.bar h1 { font-size: 20px; font-weight: 500; letter-spacing: -.01em; display: flex; gap: 12px; align-items: baseline; min-width: 0; white-space: nowrap; }
+.bar h1 small { font-size: 15px; font-weight: 400; color: var(--text-muted); }
+.concepts { display: flex; gap: 2px; background: var(--bg-raise); }
+.concepts a { display: inline-flex; gap: 8px; align-items: center; height: 36px; padding: 0 12px; font-size: 14px; color: var(--text-muted); transition: color var(--t-hover) ease; }
+.concepts a:hover { color: var(--text-primary); }
+.concepts a[aria-current] { color: var(--text-primary); background: var(--bg-active); }
+.concepts a[aria-current] span { color: var(--text-secondary); }
+.grid { flex: 1; min-height: 0; container-type: size; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.grid .row { display: flex; gap: 6px; }
+.grid::-webkit-scrollbar { display: none; }
+.grid img { height: calc(50cqh - 3px); width: auto; }
+
+/* ---------- Phone: the sidebar becomes a drawer ---------- */
+.mobileBar, .scrim { display: none; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .mobileBar { display: flex; align-items: center; gap: 10px; position: fixed; top: 0; left: 0; right: 0; height: 56px; padding: 0 12px; background: var(--bg-primary); z-index: 210; }
+  .burger { width: 40px; height: 40px; display: grid; place-content: center; gap: 5px; }
+  .burger span { display: block; width: 18px; height: 1.5px; background: var(--text-primary); transition: transform var(--t-ui) var(--ease-out), opacity 160ms ease; }
+  .open .burger span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .open .burger span:nth-child(2) { opacity: 0; }
+  .open .burger span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+  .mobileBar .lockup { font-size: 1.05rem; }
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: min(86vw, 340px); padding-top: 76px; transform: translateX(-100%); transition: transform 460ms var(--ease-out); z-index: 200; }
+  .open .sidebar { transform: none; }
+  .sidebar .top { display: none; }
+  .scrim { display: block; position: fixed; inset: 0; z-index: 190; background: rgba(0,0,0,.66); opacity: 0; visibility: hidden; transition: opacity var(--t-ui) ease, visibility 0s linear var(--t-ui); }
+  .open .scrim { opacity: 1; visibility: visible; transition: opacity var(--t-ui) ease; }
+  .main { padding-top: 56px; }
+  .bar { padding: 0 12px 0 16px; }
+  .bar h1 small, .concepts a span { display: none; }
+  .preview { display: none; }
+  [data-look='a'] .vfFrame { aspect-ratio: 16 / 10; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; transition-delay: 0ms !important; }
+}
+</style>
+</head>
+<body data-look="a">
+<div class="layout" id="app">
+  <div class="mobileBar">
+    <button class="burger" type="button" aria-label="Open navigation" aria-expanded="false" id="burger"><span></span><span></span><span></span></button>
+    <a href="#" class="lockup"><span class="name"><span>AHMED</span><span>EMAD</span></span><span class="tag">PHOTOGRAPHS</span></a>
+  </div>
+
+  <aside class="sidebar" aria-label="Site">
+    <div class="top">
+      <a href="#" class="lockup" aria-label="Ahmed Emad Photographs, home"><span class="name"><span>AHMED</span><span>EMAD</span></span><span class="tag">PHOTOGRAPHS</span></a>
+    </div>
+    <div class="scroll" id="scroll">
+      <span class="marker" id="marker" aria-hidden="true"></span>
+      <nav class="nav" aria-label="Main">
+        <a href="#" class="navLink" data-nav="portfolio"><span>Portfolio</span><span class="count">48</span></a>
+        <a href="#" class="navLink" data-nav="about"><span>About</span></a>
+        <a href="#" class="navLink" data-nav="contact"><span>Contact</span></a>
+      </nav>
+
+      <a href="#" class="viewfinder" id="viewfinder" tabindex="-1" aria-hidden="true">
+        <span class="vfFrame" id="vfFrame"></span>
+        <span class="vfCaption" id="vfCaption"></span>
+      </a>
+
+      <div class="groupHead"><span>Projects</span></div>
+      <ul class="list" id="list"></ul>
+    </div>
+    <div class="footer">
+      <div class="mailRow">ahmedemad.v0@gmail.com</div>
+      <div class="socials">
+        <a href="#" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-12h4v1.5A4.5 4.5 0 0 1 16 8z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+        <a href="#" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+      </div>
+      <p class="copyright">© 2026 Ahmed Emad. All rights reserved.</p>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <header class="bar">
+      <h1 id="pageTitle">Kamelizer <small>District 5, New Cairo</small></h1>
+      <nav class="concepts" aria-label="Sidebar concepts">
+        <a href="sidebar-a-viewfinder.html" data-c="a">A <span>Viewfinder</span></a>
+        <a href="sidebar-b-facades.html" data-c="b">B <span>Facades</span></a>
+        <a href="sidebar-c-windows.html" data-c="c">C <span>Windows</span></a>
+      </nav>
+    </header>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+<div class="preview" id="preview" aria-hidden="true"></div>
+
+<script>
+/* Stand-in pictures, drawn here because the real covers live on Cloudinary */
+const seed = (s) => () => (s = (s * 16807) % 2147483647) / 2147483647;
+const sky = (id, a, b) => `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+const SCENES = [
+  [800, 1100, (w, h, r) => `<defs>${sky('s', '#1d2b4a', '#e8875a')}</defs><rect width="${w}" height="${h}" fill="url(#s)"/><polygon points="${w*.28},${h} ${w*.34},${h*.12} ${w*.66},${h*.06} ${w*.72},${h}" fill="#20242c"/><polygon points="${w*.5},${h*.09} ${w*.66},${h*.06} ${w*.72},${h} ${w*.5},${h}" fill="#2f3542"/>${Array.from({length: 36}, (_, y) => Array.from({length: 8}, (_, x) => r() > .45 ? `<rect x="${w*(.35+x*.04)}" y="${h*(.15+y*.022)}" width="${w*.022}" height="${h*.011}" fill="#f6c27a" opacity="${.4+r()*.6}"/>` : '').join('')).join('')}<rect y="${h*.93}" width="${w}" height="${h*.07}" fill="#0d0f13"/>`],
+  [1200, 800, (w, h) => `<defs>${sky('s', '#4d86c6', '#bcd6ee')}<linearGradient id="b" x1="0" x2="1"><stop offset="0" stop-color="#f4f2ee"/><stop offset=".6" stop-color="#d9d6d0"/><stop offset="1" stop-color="#9c9890"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#s)"/><path d="M0 ${h*.55} Q ${w*.5} ${h*.2} ${w} ${h*.5} L ${w} ${h} L 0 ${h} Z" fill="url(#b)"/>${Array.from({length: 5}, (_, i) => `<path d="M0 ${h*(.62+i*.07)} Q ${w*.5} ${h*(.3+i*.075)} ${w} ${h*(.58+i*.07)}" stroke="#2a3340" stroke-width="${h*.018}" fill="none" opacity=".7"/>`).join('')}<rect y="${h*.93}" width="${w}" height="${h*.07}" fill="#6d6a64"/>`],
+  [1200, 700, (w, h) => `<rect width="${w}" height="${h}" fill="#b5aea3"/>${Array.from({length: 14}, (_, i) => `<rect x="${w*(.1+i*.06)}" y="${h*(.85-i*.055)}" width="${w*(.9-i*.06)}" height="${h*.055}" fill="${i%2?'#cfc8bc':'#c4bcaf'}"/><rect x="${w*(.1+i*.06)}" y="${h*(.85-i*.055)}" width="${w*.03}" height="${h*.055}" fill="#7a7266"/>`).join('')}<polygon points="0,0 ${w*.42},0 ${w*.1},${h} 0,${h}" fill="#3c3833" opacity=".55"/>`],
+  [800, 1050, (w, h) => `<rect width="${w}" height="${h}" fill="#1a1714"/>${Array.from({length: 7}, (_, i) => `<polygon points="${w*(.05+i*.14)},0 ${w*(.11+i*.14)},0 ${w*(.32+i*.14)},${h} ${w*(.22+i*.14)},${h}" fill="#f2d7a6" opacity=".22"/>`).join('')}<rect y="${h*.78}" width="${w}" height="${h*.22}" fill="#3a2f25"/>${Array.from({length: 7}, (_, i) => `<polygon points="${w*(.22+i*.14)},${h*.78} ${w*(.32+i*.14)},${h*.78} ${w*(.4+i*.14)},${h} ${w*(.28+i*.14)},${h}" fill="#e9c58c" opacity=".5"/>`).join('')}`],
+  [900, 900, (w, h, r) => `<rect width="${w}" height="${h}" fill="#d6cfc4"/>${Array.from({length: 9}, (_, y) => Array.from({length: 9}, (_, x) => `<rect x="${w*(.04+x*.107)}" y="${h*(.04+y*.107)}" width="${w*.08}" height="${h*.08}" fill="${r() > .8 ? '#c46b3c' : '#2c3a47'}"/>`).join('')).join('')}`],
+  [1400, 620, (w, h, r) => `<defs>${sky('s', '#0e1a33', '#4a6fa0')}</defs><rect width="${w}" height="${h}" fill="url(#s)"/><rect y="${h*.62}" width="${w}" height="${h*.38}" fill="#0b1426"/><path d="M0 ${h*.55} Q ${w*.5} ${h*.25} ${w} ${h*.55}" stroke="#d7e3f2" stroke-width="${h*.012}" fill="none"/><rect y="${h*.55}" width="${w}" height="${h*.03}" fill="#1c2a44"/>${Array.from({length: 50}, () => `<rect x="${r()*w}" y="${h*(.64+r()*.3)}" width="${w*.02}" height="3" fill="#f3c97c" opacity=".6"/>`).join('')}`],
+  [1200, 800, (w, h) => `<defs>${sky('s', '#e7b98a', '#f6e3c8')}</defs><rect width="${w}" height="${h}" fill="url(#s)"/><rect y="${h*.7}" width="${w}" height="${h*.3}" fill="#c8996a"/><rect x="${w*.2}" y="${h*.42}" width="${w*.6}" height="${h*.3}" fill="#e9d8c0"/><rect x="${w*.2}" y="${h*.42}" width="${w*.6}" height="${h*.03}" fill="#8d6b4c"/><rect x="${w*.32}" y="${h*.52}" width="${w*.2}" height="${h*.2}" fill="#2b2522"/><rect x="${w*.6}" y="${h*.5}" width="${w*.12}" height="${h*.1}" fill="#3a302a"/>`],
+  [800, 1100, (w, h) => `<rect width="${w}" height="${h}" fill="#efece6"/>${Array.from({length: 24}, (_, i) => `<circle cx="${w/2}" cy="${h/2}" r="${w*(.48-i*.018)}" fill="${i%2?'#e2ddd4':'#d1cbc0'}"/>`).join('')}${Array.from({length: 36}, (_, i) => `<line x1="${w/2}" y1="${h/2}" x2="${w/2+Math.cos(i/36*6.283)*w*.48}" y2="${h/2+Math.sin(i/36*6.283)*w*.48}" stroke="#9a9286" stroke-width="3"/>`).join('')}<circle cx="${w/2}" cy="${h/2}" r="${w*.05}" fill="#2a2724"/>`],
+];
+const pic = (i) => {
+  const [w, h, f] = SCENES[i % SCENES.length];
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${f(w, h, seed(7 + i))}</svg>`);
+};
+
+/* Kamelizer is on the site; the other projects are sample names for the mock-up */
+const PROJECTS = [
+  { name: 'Kamelizer', loc: 'District 5, New Cairo', n: 14, cover: 0 },
+  { name: 'Courtyard House', loc: 'Sheikh Zayed', n: 22, cover: 1 },
+  { name: 'Galala Terraces', loc: 'Ain Sokhna', n: 9, cover: 2 },
+  { name: 'The Reading Room', loc: 'Zamalek, Cairo', n: 17, cover: 3 },
+  { name: 'Brick Office', loc: 'New Capital', n: 11, cover: 4 },
+  { name: 'Nile Crossing', loc: 'Giza', n: 6, cover: 5 },
+  { name: 'Desert Villa', loc: 'North Coast', n: 19, cover: 6 },
+];
+const LIGHT_ORDER = [5, 0, 14, 9, 2, 19, 11, 7, 22, 3, 16, 12, 1, 20, 8, 17, 4, 23, 13, 6, 18, 10, 21, 15];
+const look = document.body.dataset.look;
+let active = 0;
+
+const list = document.getElementById('list');
+PROJECTS.forEach((p, i) => {
+  const li = document.createElement('li');
+  const windows = Array.from({ length: Math.min(p.n, 24) }, (_, w) => `<i style="--w:${LIGHT_ORDER.indexOf(w)}"></i>`).join('');
+  li.innerHTML = `<a href="#" class="project" data-i="${i}">
+      <span class="band" aria-hidden="true"><img src="${pic(p.cover)}" alt=""></span>
+      <span class="pName">${p.name}</span><span class="count">${p.n}</span>
+      <span class="pLoc">${p.loc}</span>
+      <span class="lights">${p.n} photographs</span>
+      <span class="facade" aria-hidden="true">${windows}</span>
+    </a>`;
+  list.appendChild(li);
+});
+document.querySelectorAll('.concepts a').forEach((a) => a.dataset.c === look && a.setAttribute('aria-current', 'page'));
+
+/* Stand-in gallery for the open project */
+function fillGrid(i) {
+  const row = (from) => `<div class="row">${Array.from({ length: 5 }, (_, k) => `<img src="${pic(i + from + k)}" alt="">`).join('')}</div>`;
+  document.getElementById('grid').innerHTML = row(0) + row(5);
+  const p = PROJECTS[i];
+  document.getElementById('pageTitle').innerHTML = `${p.name} <small>${p.loc}</small>`;
+}
+
+/* Sliding marker behind the current row (as on the site) */
+const marker = document.getElementById('marker');
+const scroll = document.getElementById('scroll');
+function placeMarker() {
+  const cur = scroll.querySelector('[aria-current]');
+  if (!cur) { marker.classList.remove('on'); return; }
+  const br = scroll.getBoundingClientRect();
+  const r = cur.getBoundingClientRect();
+  marker.style.height = r.height + 'px';
+  marker.style.transform = `translateY(${r.top - br.top + scroll.scrollTop}px)`;
+  marker.classList.add('on');
+  marker.classList.toggle('inList', cur.classList.contains('project'));
+}
+
+/* A: the viewfinder shows the hovered project, else the open one */
+let shown = -1;
+function frame(i) {
+  if (look !== 'a' || i === shown) return;
+  shown = i;
+  const p = PROJECTS[i];
+  const f = document.getElementById('vfFrame');
+  const img = new Image();
+  img.src = pic(p.cover);
+  img.alt = '';
+  img.className = 'develop';
+  img.addEventListener('animationend', () => { while (f.firstChild !== img) f.firstChild.remove(); });
+  f.appendChild(img);
+  const cap = document.getElementById('vfCaption');
+  cap.classList.remove('swap');
+  cap.innerHTML = `<b>${p.name}</b><span>${p.loc} · ${p.n} photographs</span>`;
+  void cap.offsetWidth;
+  cap.classList.add('swap');
+}
+
+const preview = document.getElementById('preview');
+function setActive(i) {
+  active = i;
+  document.querySelectorAll('[aria-current]').forEach((el) => el.closest('.concepts') || el.removeAttribute('aria-current'));
+  document.querySelector(`.project[data-i="${i}"]`).setAttribute('aria-current', 'page');
+  fillGrid(i);
+  frame(i);
+  setTimeout(placeMarker, 0);
+  setTimeout(placeMarker, 650);
+}
+
+list.addEventListener('pointerover', (e) => {
+  const a = e.target.closest('.project');
+  if (!a) return;
+  const i = +a.dataset.i;
+  frame(i);
+  if (look === 'c' && matchMedia('(hover: hover) and (min-width: 901px)').matches) {
+    const r = a.getBoundingClientRect();
+    const p = PROJECTS[i];
+    preview.innerHTML = `<img src="${pic(p.cover)}" alt=""><p><b>${p.name}</b>${p.loc} · ${p.n} photographs</p>`;
+    preview.style.setProperty('--pv-y', Math.min(Math.max(16, r.top - 40), innerHeight - 340) + 'px');
+    preview.classList.add('on');
+  }
+});
+list.addEventListener('pointerleave', () => { frame(active); preview.classList.remove('on'); });
+list.addEventListener('click', (e) => {
+  const a = e.target.closest('.project');
+  if (!a) return;
+  e.preventDefault();
+  setActive(+a.dataset.i);
+  document.getElementById('app').classList.remove('open');
+});
+document.querySelectorAll('.navLink').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
+document.querySelectorAll('.lockup, .viewfinder, .socials a').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
+
+const app = document.getElementById('app');
+const burger = document.getElementById('burger');
+burger.addEventListener('click', () => {
+  const open = app.classList.toggle('open');
+  burger.setAttribute('aria-expanded', open);
+  setTimeout(placeMarker, 480);
+});
+document.getElementById('scrim').addEventListener('click', () => app.classList.remove('open'));
+addEventListener('resize', placeMarker);
+/* Re-measure when fonts arrive or rows change height (B's open band, A's caption) */
+new ResizeObserver(() => placeMarker()).observe(list);
+document.fonts && document.fonts.ready.then(placeMarker);
+
+setActive(0);
+</script>
+</body>
+</html>
