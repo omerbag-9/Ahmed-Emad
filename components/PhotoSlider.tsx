@@ -27,6 +27,9 @@ export interface PhotoSliderProps {
   onSwitchToGrid?: () => void;
   /** After opening from grid, center this photo in the strip */
   initialFocusPhotoId?: string | null;
+  /** Accepted so every slideshow look takes the same props; the strip does not title itself */
+  title?: string;
+  location?: string;
 }
 
 /** Scroll the strip so `item` is centered (smooth for arrow controls). */

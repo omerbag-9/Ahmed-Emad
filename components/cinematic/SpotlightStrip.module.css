@@ -1,0 +1,235 @@
+.wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #050505;
+}
+
+/* The room: lit by the colours of the print in the middle */
+.room {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  container-type: size;
+  background: #050505;
+}
+
+.glow {
+  position: absolute;
+  inset: -15%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) saturate(1.4) brightness(0.5);
+  opacity: 0;
+  transition: opacity 1200ms ease;
+  pointer-events: none;
+}
+
+.glow[data-active] {
+  opacity: 0.85;
+}
+
+.strip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 2.5cqw;
+  /* Half a screen either side, so the first and last prints can stand in the middle */
+  padding-inline: 50cqw;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  perspective: 1400px;
+  touch-action: pan-x;
+}
+
+.strip::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .strip {
+    cursor: grab;
+  }
+
+  .strip:global(.ae-pan-scrolling) {
+    cursor: grabbing;
+  }
+}
+
+/*
+ * --d: signed distance from the middle in half-screens (set by script every frame).
+ * Prints turn away from the viewer and sink back the further out they hang.
+ */
+.tile {
+  --d: 0;
+  --ad: 0;
+  position: relative;
+  flex: 0 0 auto;
+  height: 70cqh;
+  max-width: 84cqw;
+  transform: translateZ(calc(var(--ad) * -220px)) rotateY(calc(var(--d) * -24deg));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.print {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-raise);
+}
+
+/* Off-centre prints fall into shadow */
+.shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #000;
+  opacity: calc(min(var(--ad) * 0.8, 0.82));
+  pointer-events: none;
+}
+
+.tile:not([data-active]) {
+  cursor: pointer;
+}
+
+.shareWrap {
+  position: absolute;
+  bottom: max(0.5rem, 2%);
+  right: max(0.5rem, 2%);
+  z-index: 3;
+}
+
+@media (hover: hover) {
+  .shareWrap {
+    opacity: 0;
+    transition: opacity var(--t-hover) ease;
+  }
+
+  .tile:hover .shareWrap,
+  .tile:focus-within .shareWrap {
+    opacity: 1;
+  }
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  color: var(--text-secondary);
+}
+
+.footerBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: #050505;
+}
+
+.toolGroup {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* One short bar per photo; the one you are on stands taller and lit */
+.ticks {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ticks span {
+  flex: 0 1 16px;
+  min-width: 3px;
+  height: 4px;
+  background: var(--bg-active);
+  transition:
+    height var(--t-ui) var(--ease-out),
+    background-color var(--t-ui) ease;
+}
+
+.ticks span[data-on] {
+  height: 12px;
+  background: var(--text-primary);
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter b {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.toolBtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-secondary);
+  transition:
+    color var(--t-hover) ease,
+    background-color var(--t-hover) ease,
+    transform 160ms var(--ease-out),
+    opacity var(--t-hover) ease;
+}
+
+.toolBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.toolBtn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.toolBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+@media (max-width: 900px) {
+  .fullscreenTool {
+    display: none;
+  }
+
+  .tile {
+    height: 62cqh;
+    transform: translateZ(calc(var(--ad) * -160px)) rotateY(calc(var(--d) * -18deg));
+  }
+
+  .strip {
+    gap: 4cqw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transform: none;
+  }
+}

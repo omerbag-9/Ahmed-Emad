@@ -105,6 +105,40 @@
   transform: translateX(40px);
 }
 
+/* Proof of concept: slideshow look picker */
+.looks {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-raise);
+}
+
+.looks button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition:
+    color var(--t-hover) ease,
+    background-color var(--t-hover) ease;
+}
+
+.looks button:hover {
+  color: var(--text-primary);
+}
+
+.looks button[aria-pressed='true'] {
+  color: var(--text-primary);
+  background: var(--bg-active);
+}
+
+.lookName {
+  color: var(--text-secondary);
+}
+
 .stage {
   position: relative;
   flex: 1;
@@ -124,7 +158,8 @@
   }
 
   .count,
-  .pin {
+  .pin,
+  .lookName {
     display: none;
   }
 

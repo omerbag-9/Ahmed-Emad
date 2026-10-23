@@ -1,0 +1,280 @@
+.wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+}
+
+.stage {
+  --pad-y: clamp(8px, 2cqh, 24px);
+  --pad-x: clamp(12px, 3cqw, 48px);
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  container-type: size;
+  touch-action: none;
+  user-select: none;
+}
+
+@media (min-width: 901px) {
+  .stage {
+    cursor: grab;
+  }
+
+  .stage:active {
+    cursor: grabbing;
+  }
+}
+
+.slide {
+  position: absolute;
+  inset: var(--pad-y) var(--pad-x);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.slide > .frame {
+  pointer-events: auto;
+}
+
+/* Exactly the photo's shape, as large as the stage allows */
+.frame {
+  position: relative;
+  aspect-ratio: var(--r);
+  width: min(100cqw - 2 * var(--pad-x), (100cqh - 2 * var(--pad-y)) * var(--r));
+  overflow: hidden;
+}
+
+.opening {
+  z-index: 2;
+}
+
+.opening .frame {
+  overflow: visible;
+}
+
+/* The photo being opened over steps back and darkens */
+.leaving {
+  z-index: 1;
+  animation: leave 900ms var(--ease-io) both;
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+    filter: brightness(0.4);
+  }
+}
+
+.slat {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  animation: slatOpen 820ms var(--ease-out) both;
+}
+
+.slat[data-dir='1'] {
+  --closed: inset(0 100% 0 0);
+}
+
+.slat[data-dir='-1'] {
+  --closed: inset(0 0 0 100%);
+}
+
+@keyframes slatOpen {
+  from {
+    clip-path: var(--closed);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* The building behind the slats slides the last few percent into place */
+.slatInner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  animation: settle 1100ms var(--ease-out) both;
+}
+
+.slatInner[data-dir='1'] {
+  --from: 4%;
+}
+
+.slatInner[data-dir='-1'] {
+  --from: -4%;
+}
+
+@keyframes settle {
+  from {
+    transform: translateX(var(--from)) scale(1.04);
+  }
+}
+
+.preload {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shareWrap {
+  position: absolute;
+  bottom: max(0.5rem, 2%);
+  right: max(0.5rem, 2%);
+  z-index: 3;
+}
+
+@media (hover: hover) {
+  .shareWrap {
+    opacity: 0;
+    transition: opacity var(--t-hover) ease;
+  }
+
+  .frame:hover .shareWrap,
+  .frame:focus-within .shareWrap {
+    opacity: 1;
+  }
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  color: var(--text-secondary);
+}
+
+.footerBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-primary);
+}
+
+.toolGroup {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Contact sheet */
+.sheet {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 56px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Centred while the whole set fits, scrolling from the start once it doesn't */
+  justify-content: safe center;
+}
+
+.sheet::-webkit-scrollbar {
+  display: none;
+}
+
+.thumb {
+  flex: 0 0 auto;
+  height: 40px;
+  overflow: hidden;
+  background: var(--bg-raise);
+  opacity: 0.35;
+  transition:
+    opacity var(--t-ui) ease,
+    height var(--t-ui) var(--ease-out);
+}
+
+.thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb:hover {
+  opacity: 0.7;
+}
+
+.thumb[data-on] {
+  height: 56px;
+  opacity: 1;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.counter b {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.toolBtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-secondary);
+  transition:
+    color var(--t-hover) ease,
+    background-color var(--t-hover) ease,
+    transform 160ms var(--ease-out);
+}
+
+.toolBtn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.toolBtn:active {
+  transform: scale(0.92);
+}
+
+@media (max-width: 900px) {
+  .fullscreenTool {
+    display: none;
+  }
+
+  .stage {
+    --pad-x: 0px;
+  }
+
+  .counter {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slat,
+  .slatInner,
+  .leaving {
+    animation-duration: 1ms;
+    animation-delay: 0ms !important;
+  }
+}

@@ -1,0 +1,307 @@
+.wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.stage {
+  --bar: clamp(28px, 7cqh, 72px);
+  --side: clamp(16px, 4cqw, 64px);
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+  container-type: size;
+  touch-action: none;
+  user-select: none;
+}
+
+@media (min-width: 901px) {
+  .stage {
+    cursor: grab;
+  }
+
+  .stage:active {
+    cursor: grabbing;
+  }
+}
+
+.slide {
+  position: absolute;
+  inset: var(--bar) var(--side);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(1.035);
+  filter: brightness(0.6);
+  transition:
+    opacity 1400ms var(--ease-io),
+    transform 1800ms var(--ease-out),
+    filter 1400ms ease;
+  pointer-events: none;
+}
+
+.slide[data-active] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/* Exactly the photo's shape, as large as the screen between the bars allows */
+.frame {
+  position: relative;
+  aspect-ratio: var(--r);
+  width: min(100cqw - 2 * var(--side), (100cqh - 2 * var(--bar)) * var(--r));
+  overflow: hidden;
+}
+
+.push {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+}
+
+.slide[data-active] .push {
+  animation: kenBurns 9000ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+
+.push[data-drift='0'] {
+  --kx: -1.6%;
+  --ky: -1%;
+}
+
+.push[data-drift='1'] {
+  --kx: 1.6%;
+  --ky: -0.6%;
+}
+
+.push[data-drift='2'] {
+  --kx: -1%;
+  --ky: 1.2%;
+}
+
+.push[data-drift='3'] {
+  --kx: 1.2%;
+  --ky: 1%;
+}
+
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.075) translate(var(--kx), var(--ky));
+  }
+}
+
+.shareWrap {
+  position: absolute;
+  bottom: max(0.5rem, 2%);
+  right: max(0.5rem, 2%);
+  z-index: 3;
+}
+
+@media (hover: hover) {
+  .shareWrap {
+    opacity: 0;
+    transition: opacity var(--t-hover) ease;
+  }
+
+  .frame:hover .shareWrap,
+  .frame:focus-within .shareWrap {
+    opacity: 1;
+  }
+}
+
+/* Letterbox bars slide in when the reel opens */
+.bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--bar);
+  background: #000;
+  z-index: 4;
+  pointer-events: none;
+  animation: barIn 900ms var(--ease-out) both;
+}
+
+.barTop {
+  top: 0;
+  --from: -100%;
+}
+
+.barBottom {
+  bottom: 0;
+  --from: 100%;
+}
+
+@keyframes barIn {
+  from {
+    transform: translateY(var(--from));
+  }
+}
+
+.titleCard {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 calc(var(--side) + 4cqw);
+  background: #000;
+  pointer-events: none;
+  animation: titleOut 2800ms ease both;
+}
+
+.titleName {
+  font-size: clamp(40px, 9cqw, 132px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  color: var(--text-primary);
+}
+
+.titleWhere {
+  margin-top: 20px;
+  font-size: clamp(16px, 1.6cqw, 22px);
+  color: var(--text-secondary);
+  animation: whereIn 900ms var(--ease-out) 700ms both;
+}
+
+/* Holds on black, then dissolves to the first photograph */
+@keyframes titleOut {
+  0%,
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes whereIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.counter b {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  color: var(--text-secondary);
+}
+
+.footerBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: #000;
+}
+
+.toolGroup {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeline {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  background: var(--bg-active);
+  overflow: hidden;
+}
+
+.timelineFill {
+  position: absolute;
+  inset: 0;
+  background: var(--text-primary);
+  transform-origin: left;
+  transform: scaleX(0);
+  animation-name: fill;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-play-state: paused;
+}
+
+.timelineFill[data-playing] {
+  animation-play-state: running;
+}
+
+@keyframes fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.toolBtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-secondary);
+  transition:
+    color var(--t-hover) ease,
+    background-color var(--t-hover) ease,
+    transform 160ms var(--ease-out);
+}
+
+.toolBtn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.toolBtn:active {
+  transform: scale(0.92);
+}
+
+@media (max-width: 900px) {
+  .fullscreenTool {
+    display: none;
+  }
+
+  .stage {
+    --bar: clamp(20px, 5cqh, 40px);
+    --side: 0px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide[data-active] .push,
+  .bar {
+    animation: none;
+  }
+}

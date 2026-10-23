@@ -6,9 +6,37 @@ import Icon from '@/components/Icon';
 import BlurText from '@/components/motion/BlurText';
 import MasonryGrid, { type NextProject } from './MasonryGrid';
 import PhotoSlider from './PhotoSlider';
+import CinemaReel from './cinematic/CinemaReel';
+import LouvreSlides from './cinematic/LouvreSlides';
+import SpotlightStrip from './cinematic/SpotlightStrip';
 import styles from './ResponsiveGallery.module.css';
 
 const STORAGE_KEY = 'ae-portfolio-view';
+
+/*
+ * Proof of concept: three cinematic slideshow looks beside the current strip, switchable from the
+ * title bar (or ?look=a|b|c|now in the address). Once one is picked the others and this picker go.
+ */
+const LOOK_KEY = 'ae-slider-look';
+const LOOKS = [
+  { id: 'now', label: 'Now', name: 'Current strip' },
+  { id: 'a', label: 'A', name: 'Screening' },
+  { id: 'b', label: 'B', name: 'Walkthrough' },
+  { id: 'c', label: 'C', name: 'Louvres' },
+] as const;
+type Look = (typeof LOOKS)[number]['id'];
+const SLIDESHOWS = { now: PhotoSlider, a: CinemaReel, b: SpotlightStrip, c: LouvreSlides };
+
+function readLook(): Look | null {
+  try {
+    const q = new URLSearchParams(location.search).get('look');
+    const v = q ?? localStorage.getItem(LOOK_KEY);
+    if (LOOKS.some((l) => l.id === v)) return v as Look;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
 
 type ViewMode = 'grid' | 'slider';
 
@@ -58,6 +86,7 @@ export default function ResponsiveGallery({
   nextProject,
 }: ResponsiveGalleryProps) {
   const [mode, setMode] = useState<ViewMode>('grid');
+  const [look, setLook] = useState<Look>('a');
   /** When opening the strip from a grid tile, centre this photo */
   const [focusPhotoId, setFocusPhotoId] = useState<string | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -65,7 +94,11 @@ export default function ResponsiveGallery({
 
   useEffect(() => {
     const stored = readStoredMode();
-    if (stored) queueMicrotask(() => setMode(stored));
+    const storedLook = readLook();
+    queueMicrotask(() => {
+      if (stored) setMode(stored);
+      if (storedLook) setLook(storedLook);
+    });
   }, []);
 
   const persist = useCallback((m: ViewMode) => {
@@ -179,7 +212,20 @@ export default function ResponsiveGallery({
     [persist]
   );
 
+  const pickLook = useCallback((l: Look) => {
+    try {
+      localStorage.setItem(LOOK_KEY, l);
+    } catch {
+      /* ignore */
+    }
+    const apply = () => flushSync(() => setLook(l));
+    const doc = document as DocWithVT;
+    if (!doc.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) apply();
+    else doc.startViewTransition(apply);
+  }, []);
+
   const count = `${photos.length} photograph${photos.length === 1 ? '' : 's'}`;
+  const Slideshow = SLIDESHOWS[look];
 
   return (
     <section className={styles.wrap} aria-labelledby="gallery-title">
@@ -191,7 +237,24 @@ export default function ResponsiveGallery({
           {location?.trim() ? <span className={styles.location}>{location.trim()}</span> : null}
         </h1>
         <div className={styles.side}>
-          <span className={styles.count}>{count}</span>
+          {mode === 'slider' ? (
+            <div className={styles.looks} role="group" aria-label="Slideshow concept">
+              {LOOKS.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  aria-pressed={look === l.id}
+                  title={l.name}
+                  onClick={() => pickLook(l.id)}
+                >
+                  {l.label}
+                  {look === l.id ? <span className={styles.lookName}>{l.name}</span> : null}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span className={styles.count}>{count}</span>
+          )}
           <div className={styles.seg} role="group" aria-label="Gallery view" data-mode={mode}>
             <span className={styles.segFill} aria-hidden />
             <button
@@ -219,7 +282,14 @@ export default function ResponsiveGallery({
         {mode === 'grid' ? (
           <MasonryGrid photos={photos} onOpenPhotoInSlider={openInStrip} nextProject={nextProject} />
         ) : (
-          <PhotoSlider photos={photos} initialFocusPhotoId={focusPhotoId} onSwitchToGrid={() => switchMode('grid')} />
+          <Slideshow
+            key={look}
+            photos={photos}
+            initialFocusPhotoId={focusPhotoId}
+            onSwitchToGrid={() => switchMode('grid')}
+            title={title}
+            location={location}
+          />
         )}
       </div>
     </section>
